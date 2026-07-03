@@ -1,0 +1,12 @@
+/* src/styles.css */
+@import "tailwindcss";
+
+@theme {
+  /* High-tech Obsidian & Cyan Palette */
+  --color-tech-bg: #0a0b0e;
+  --color-tech-panel: #101216;
+  --color-tech-active: #141b24;
+  --color-tech-cyan: #22d3ee;        /* Bright Electric Cyan */
+  --color-tech-cyan-hover: #083344;  /* Deep Cyan for hover states */
+  --color-tech-cyan-border: #155e75; /* Muted Cyan for subtle boundaries */
+}

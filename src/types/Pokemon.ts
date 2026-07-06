@@ -25,8 +25,9 @@ export interface PokemonCard{
     }
   }
   abilities: Ability[]
-
 }
+
+
 
 export interface Ability{
   ability:{

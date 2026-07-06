@@ -1,67 +1,114 @@
 <script setup lang="ts">
-import { useFetch } from '@/composables/useFetch';
-import type { Pokemon, PokemonCard, PokemonType } from '@/types/Pokemon';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { ref, watch } from "vue";
 
-const currentOffSet = ref(0); 
-const limit = ref(20);
+import { useFetch } from "@/composables/useFetch";
+import type { Ability, Pokemon, PokemonCard as PokemonCardType, PokemonType, Stat } from "@/types/Pokemon";
+import PokemonCard from "@/components/PokemonCard.vue";
 
-const pokemonCards = ref<PokemonCard[]>([]);
 
-const { data, loading, error } = useFetch<Pokemon>(`https://pokeapi.co/api/v2/pokemon?limit=${limit.value}&offset=${currentOffSet.value}`);
+const currentOffSet = ref(0);
+const limit = ref(30);
+
+const pokemonList = ref<PokemonCardType[]>([]);
+const loadingDetails = ref(false);
+
+const { data, loading, error, fetchData } = useFetch<Pokemon>(
+  () =>`https://pokeapi.co/api/v2/pokemon?limit=${limit.value}&offset=${currentOffSet.value}`
+);
+
+const formatPokemonDetails = (details: PokemonCardType): PokemonCardType => ({
+  id: details.id,
+  name: details.name,
+  cries:{
+    latest: details.cries.latest,
+    legacy: details.cries.legacy
+  },
+  base_experience: details.base_experience,
+  height: details.height,
+  weight: details.weight,
+  species:{
+    name: details.species.name,
+    url: details.species.url
+  },
+  stats: details.stats.map((stat: Stat) => ({
+    base_stat: stat.base_stat,
+    effort: stat.effort,
+    stat: {
+      name: stat.stat.name,
+      url: stat.stat.url,
+    },
+  })),
+  abilities: details.abilities.map((ability: Ability) => ({
+    ability:{
+      name: ability.ability.name,
+      url: ability.ability.url
+    },
+    is_hidden: ability.is_hidden,
+    slot: ability.slot
+  })),
+  types: details.types.map((t: PokemonType) => ({
+    slot: t.slot,
+    type: {
+      name: t.type.name,
+      url: t.type.url,
+    },
+  })),
+  sprites: {
+    other: {
+      "official-artwork": {
+        front_default:
+          details.sprites.other["official-artwork"].front_default,
+        front_shiny:
+          details.sprites.other["official-artwork"].front_shiny,
+      },
+    },
+  },
+});
 
 const fetchPokemonDetails = async () => {
-  if (data.value) {
-    const cards: PokemonCard[] = [];
+  if (!data.value) return;
 
-    for (const pokemon of data.value) {
-      try {
+  loadingDetails.value = true;
+
+  try {
+    const cards = await Promise.all(
+      data.value.map(async (pokemon: Pokemon) => {
         const response = await fetch(pokemon.url);
-        const detailData = await response.json();
 
-        console.log(detailData)
-        const newPokemon: PokemonCard = {
-          name: detailData.name,
-          types: detailData.types.map((t: PokemonType) => ({
-            slot: t.slot,
-            type:{
-              name: t.type.name,
-              url: t.type.url
-            }
-          })),
-          sprites: {
-            other: {
-              'official-artwork': {
-                front_default: detailData.sprites.other['official-artwork'].front_default,
-                front_shiny: detailData.sprites.other['official-artwork'].front_shiny
-              }
-            }
-          }
-        };
-        
-        cards.push(newPokemon);
-      } catch (err) {
-        console.error(`Failed to fetch details for ${pokemon.name}`, err);
-      }
-    }
-    
-    pokemonCards.value = [...cards];
+        if (!response.ok) {
+          throw new Error("Failed to fetch Pokémon");
+        }
+
+        const details: PokemonCardType = await response.json();
+
+        return formatPokemonDetails(details);
+      })
+    );
+
+    pokemonList.value = cards;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingDetails.value = false;
   }
 };
 
-watch(data, (newData) => {
-  if (newData) {
-    fetchPokemonDetails();
-  }
-}, { immediate: true });
+watch( data, (newData) => {
+    if (newData) {
+      fetchPokemonDetails();
+    }
+  },
+  { immediate: true }
+);
 
-watch(currentOffSet, () =>{
-  fetchPokemonDetails();
-}, { immediate: true })
+watch(currentOffSet, () => {
+    fetchData();
+  },
+  { immediate: true }
+);
 
 const nextPage = () => {
   currentOffSet.value += limit.value;
-  fetchPokemonDetails();
 };
 
 const prevPage = () => {
@@ -69,60 +116,80 @@ const prevPage = () => {
     currentOffSet.value -= limit.value;
   }
 };
-
-watch([data, currentOffSet], () => {
-  fetchPokemonDetails();
-});
-
-const typeColors: any = reactive({
-  grass: "bg-green-600",
-  fire: "bg-red-500",
-  poison: 'bg-purple-600',
-  water: "bg-blue-500",
-  flying: "bg-black",
-  bug: 'bg-orange-500',
-  normal: 'bg-yellow-500'
-})
-
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-8 text-gray-500 text-sm">Loading Pokémon list...</div>
-  <div v-else-if="error" class="text-center py-8 text-red-500 text-sm">Error loading data.</div>
-  
-  <div v-else class="p-4 max-w-5xl mx-auto">
-  
-    <div class="flex text-black flex-wrap gap-3 justify-center">
-      <div v-for="pokemon in pokemonCards" :key="pokemon.name" class="border border-gray-200 rounded-lg p-3 w-36 bg-white shadow-sm flex flex-col items-center justify-between text-center">
-        <img :src="pokemon.sprites.other['official-artwork'].front_default" :alt="pokemon.name" class="w-20 h-20 object-contain mb-2"/>
-        
+  <section class="space-y-8">
+
+    <div class="relative overflow-hidden rounded-3xl border border-cyan-900/40 bg-slate-900/80 p-8 shadow-xl backdrop-blur">
+      <div class="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl"></div>
+      <div class="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-sky-500/5 blur-3xl"></div>
+
+      <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
         <div>
-          <h3 class="capitalize font-bold text-sm text-gray-800 mb-1">{{ pokemon.name }}</h3>
-          
-          <div class="flex flex-wrap gap-1 justify-center">
-            <span 
-              v-for="t in pokemon.types" 
-              :key="t.type.name" 
-              :class="typeColors[t.type.name.toLowerCase()]"
-              class="text-[10px] text-white px-1.5 py-0.5 rounded capitalize font-medium"
-            >
-            {{ t.type.name }}
-            </span>
-          </div>
+          <p class="mb-2 text-sm font-semibold uppercase tracking-[0.35em] text-cyan-400"> Pokémon Database
+          </p>
+
+          <h1 class="text-4xl font-black tracking-tight text-white lg:text-5xl">
+            Poké<span class="text-cyan-400">Dex</span>
+          </h1>
+
+          <p class="mt-4 max-w-xl text-slate-400">
+            Browse Pokémon with official artwork, typing and pagination.
+            Clean, responsive and powered by PokéAPI.
+          </p>
         </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-cyan-900/40 bg-slate-950/70 p-3">
+          <button @click="prevPage" :disabled="currentOffSet === 0"
+            class="rounded-xl border border-cyan-900/50 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-cyan-500 hover:bg-cyan-950 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ← Previous
+          </button>
+
+          <div
+            class="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-sm font-bold text-cyan-300"
+          >
+            Page {{ Math.floor(currentOffSet / limit) + 1 }}
+          </div>
+
+          <button @click="nextPage"
+            class="rounded-xl bg-cyan-500 px-5 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20"
+          >
+            Next →
+          </button>
+        </div>
+
       </div>
     </div>
 
-    <div class="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-gray-100">
-      <button @click="prevPage" :disabled="currentOffSet === 0"
-        class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
-      >
-        Previous
-      </button>
-      <span class="text-xs text-gray-500">Offset: {{ currentOffSet }}</span>
-      <button @click="nextPage" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium shadow-sm transition">
-        Next
-      </button>
+    <!-- Loading -->
+    <div v-if="loading || loadingDetails" class="rounded-3xl border border-cyan-900/40 bg-slate-900 py-24 text-center">
+      <div class="mx-auto mb-6 h-14 w-14 animate-spin rounded-full border-4 border-cyan-600 border-t-transparent"></div>
+
+      <p class="text-lg font-medium text-slate-300"> Loading Pokémon...</p>
     </div>
-  </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="rounded-3xl border border-red-500/30 bg-red-500/10 p-12 text-center">
+      <h2 class="text-xl font-bold text-red-300">
+        Failed to load Pokémon.
+      </h2>
+
+      <p class="mt-2 text-red-200">
+        Please try again later.
+      </p>
+    </div>
+
+    <!-- Cards -->
+    <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <PokemonCard
+        v-for="pokemon in pokemonList"
+        :key="pokemon.name"
+        :pokemon="pokemon"
+      />
+    </div>
+
+  </section>
 </template>

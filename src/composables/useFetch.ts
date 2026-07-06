@@ -1,26 +1,27 @@
-import { onMounted, readonly, ref } from 'vue'
+import { onMounted, readonly, ref, type WatchSource } from 'vue'
 
-export const useFetch = <T>(url: string) => {
-  const data = ref<T[]>([])
+export const useFetch = <T>(urlSource: string | (() => string)) => {
+  const data = ref<any>([]) 
   const loading = ref(true)
   const error = ref<string | null>(null)
 
   const fetchData = async () => {
     try {
+      loading.value = true
+      
+      const url = typeof urlSource === 'function' ? urlSource() : urlSource
+      
       const response = await fetch(url)
-
       
       if (!response.ok) {
         throw new Error('Fetch failed')
       }
       const datas = await response.json()
-
       data.value = datas.results
     } catch (err) {
       if (err instanceof Error) {
         error.value = err.message
       }
-
       console.log('Something went wrong')
     } finally {
       loading.value = false
@@ -35,5 +36,6 @@ export const useFetch = <T>(url: string) => {
     data: readonly(data),
     loading,
     error,
+    fetchData
   }
 }

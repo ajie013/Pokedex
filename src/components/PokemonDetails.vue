@@ -238,10 +238,7 @@ onMounted(() => {
           <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Egg Groups</p>
           <div class="mt-2 flex flex-wrap gap-1.5">
             <span
-              v-for="group in species?.egg_groups"
-              :key="group.name"
-              class="rounded-md bg-cyan-950/50 border border-cyan-800/30 px-2 py-0.5 text-xs capitalize font-medium text-cyan-300"
-            >
+              v-for="group in species?.egg_groups" :key="group.name" class="rounded-md bg-cyan-950/50 border border-cyan-800/30 px-2 py-0.5 text-xs capitalize font-medium text-cyan-300">
               {{ group.name }}
             </span>
             <span v-if="!species?.egg_groups?.length" class="text-sm text-slate-500">--</span>
@@ -255,16 +252,9 @@ onMounted(() => {
         Abilities
       </h2>
       <div class="flex flex-wrap gap-3">
-        <div 
-          v-for="ability in pokemon.abilities" 
-          :key="ability.ability.name" 
-          class="flex items-center rounded-xl border border-cyan-800/40 bg-slate-800/80 px-4 py-2 text-sm capitalize font-medium text-slate-200 shadow-sm"
-        >
+        <div v-for="ability in pokemon.abilities" :key="ability.ability.name" class="flex items-center rounded-xl border border-cyan-800/40 bg-slate-800/80 px-4 py-2 text-sm capitalize font-medium text-slate-200 shadow-sm">
           {{ ability.ability.name.replace('-', ' ') }}
-          <span 
-            v-if="ability.is_hidden" 
-            class="ml-2 rounded bg-cyan-500 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-slate-950"
-          >
+          <span v-if="ability.is_hidden" class="ml-2 rounded bg-cyan-500 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-slate-950">
             Hidden
           </span>
         </div>
@@ -276,18 +266,9 @@ onMounted(() => {
         Weaknesses
       </h2>
       <div class="flex flex-wrap gap-2">
-        <span
-          v-for="weakness in weaknesses"
-          :key="weakness.name"
-          :class="[
-            'rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider shadow-sm',
-            TYPECOLORS[weakness.name.toUpperCase()]
-          ]"
-        >
+        <span v-for="weakness in weaknesses" :key="weakness.name" :class="['rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider shadow-sm', TYPECOLORS[weakness.name.toUpperCase()]]">
           {{ weakness.name }}
-          <span class="ml-1 font-extrabold text-slate-900/80 bg-white/40 px-1 rounded-sm text-[10px]">
-            ×{{ weakness.multiplier }}
-          </span>
+          <span class="ml-1 font-extrabold text-slate-900/80 bg-white/40 px-1 rounded-sm text-[10px]">×{{ weakness.multiplier }}</span>
         </span>
         <p v-if="!weaknesses.length" class="text-sm text-slate-400 italic">No notable elemental weaknesses.</p>
       </div>
@@ -300,11 +281,7 @@ onMounted(() => {
       <div class="flex flex-wrap items-center justify-center gap-4">
         <template v-for="(poke, index) in evolutionChain" :key="poke.id">
           <div class="flex w-28 flex-col items-center rounded-xl bg-slate-800/60 p-3 border border-slate-700/30 shadow-md">
-            <img
-              :src="poke.image"
-              :alt="poke.name"
-              class="h-16 w-16 object-contain filter drop-shadow-md"
-            >
+            <img :src="poke.image" :alt="poke.name" class="h-16 w-16 object-contain filter drop-shadow-md">
             <p class="mt-2 text-[10px] font-mono text-slate-500">
               #{{ poke.id.toString().padStart(3, "0") }}
             </p>
@@ -313,14 +290,7 @@ onMounted(() => {
             </p>
           </div>
 
-          <svg
-            v-if="index !== evolutionChain.length - 1"
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-cyan-500/70 animate-pulse hidden sm:block"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg v-if="index !== evolutionChain.length - 1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-500/70 animate-pulse hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
           </svg>
         </template>

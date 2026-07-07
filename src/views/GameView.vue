@@ -6,6 +6,7 @@ import type {
   PokemonCard,
 } from "@/types/Pokemon";
 import type { GamePokemonDetail } from "@/types/Game";
+import Header from "@/components/Header.vue";
 
 interface GameCard extends GamePokemonDetail {
   uuid: string;
@@ -170,29 +171,43 @@ watch(data, async (newData) => {
       </div>
     </div>
 
-    <header class="text-center py-3 px-4 shrink-0">
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-widest text-tech-cyan uppercase">
-        &lt;PokeMatch /&gt;
-      </h1>
-      <p class="text-[10px] sm:text-xs text-slate-400 mt-1 uppercase">Initialize memory matrix pairing sequence...</p>
-    </header>
+ <Header 
+      sub="SYSTEM: ACTIVE" 
+      title-first="<Poké" 
+      title-second="Match />" 
+      content="Initialize memory matrix pairing sequence... Select matching tiles to align the data grid."
+      class="m-4 shrink-0"
+    >
+      <div class="flex items-center gap-4 bg-slate-950/50 border border-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm shadow-inner min-w-[240px] justify-between self-start lg:self-center">
+        <div class="flex flex-col">
+          <span class="text-[10px] uppercase text-slate-400 tracking-wider">Current Score</span>
+          <span class="text-3xl font-black text-cyan-400 font-mono tracking-widest leading-none mt-1">
+            {{ score.toString().padStart(2, '0') }}
+          </span>
+        </div>
+        
+        <div class="h-8 w-px bg-cyan-500/20"></div>
+
+        <button 
+          class="group cursor-pointer flex items-center gap-1.5 px-4 py-2 bg-cyan-950/30 hover:bg-cyan-400 hover:text-slate-950 border border-cyan-400/40 hover:border-cyan-400 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+          @click="resetGame"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 transition-transform duration-500 group-hover:rotate-180">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          Reset
+        </button>
+      </div>
+    </Header>
 
     <div v-if="loading" class="flex-1 flex flex-col justify-center items-center">
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-tech-cyan"></div>
-      <p class="mt-4 text-xs uppercase">Loading...</p>
+      <p class="mt-4 text-xs uppercase">Loading Grid Matrix...</p>
     </div>
 
     <div v-else-if="error" class="flex-1 flex justify-center items-center p-4">{{ error }}</div>
 
     <div v-else class="flex-1 flex flex-col px-3 pb-3 overflow-hidden">
-      <div class="flex justify-between items-center">
-        <p>Score: {{ score }}</p>
-
-        <button class="cursor-pointer mb-3 self-center px-5 py-2 border-2 border-tech-cyan rounded text-xs uppercase shrink-0" @click="resetGame">
-          Reset Game
-        </button>
-      </div>
-
       <div class="flex-1 grid grid-cols-4 grid-rows-5 gap-2">
         <div v-for="card in gameBoard" :key="card.uuid" class="card-container cursor-pointer" @click="match(card)">
           <div class="card-inner" :class="{'is-flipped': card.flipped || card.matched,'is-matched': card.matched}">

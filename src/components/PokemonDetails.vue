@@ -11,15 +11,29 @@ import type {
   DamageRelationType,
   PokemonTypeDetails,
 } from "@/types/Pokemon";
+import {  usePokemonStore } from '@/stores/usePokemonStore';
 
 const props = defineProps<{
   pokemon: PokemonCard;
 }>();
 
+const store = usePokemonStore();
+
+const pokemon = computed(() => {
+  return store.pokemonList.find(item => item.id === props.pokemon.id) || props.pokemon;
+});
+
 const showShiny = ref(false);
 const species = ref<PokemonSpecies | null>(null);
 const weaknesses = ref<{ name: string; multiplier: number }[]>([]);
 const evolutionChain = ref<EvolutionPokemon[]>([]);
+
+const toggleFavorites = () => {
+  const storePokemon = store.pokemonList.find(item => item.id === props.pokemon.id);
+  if (storePokemon) {
+    storePokemon.isFavorite = !storePokemon.isFavorite;
+  }
+};
 
 const playCry = (url: string) =>{
   const audio: HTMLAudioElement = new Audio(url);
@@ -34,8 +48,6 @@ const playCry = (url: string) =>{
       console.error("Playback failed. Ensure user interacted with the page first:", error);
     });
 }
-
-
 
 const flattenEvolution = ( node: EvolutionNode, list: SpeciesReference[] = []): SpeciesReference[] => {
   list.push(node.species);
@@ -131,15 +143,27 @@ onMounted(() => {
   fetchSpecies();
   playCry(props.pokemon.cries.latest)
 });
+
+
 </script>
 
 <template>
   <div class="space-y-8 max-w-2xl mx-auto p-4">
     
-    <section class="flex flex-col items-center">
+    <section class="flex flex-col items-center relative rounded-3xl bg-slate-900/40 p-6 border border-slate-800/60 shadow-xl">
+      
+      <button @click="toggleFavorites" class="absolute top-4 left-4 z-10 p-2.5 rounded-xl border transition-all duration-300 group cursor-pointer shadow-md"
+        :class="pokemon.isFavorite 
+          ? 'bg-cyan-950/40 border-cyan-400 text-cyan-400 hover:bg-cyan-900/50 hover:scale-110 shadow-cyan-950/50' 
+          : 'bg-slate-900/80 border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-400/50 hover:bg-cyan-950/20 hover:scale-110'"
+        :title="pokemon.isFavorite ? 'Remove from favorites' : 'Add to favorites'">
+        <svg xmlns="http://www.w3.org/2000/svg" :fill="pokemon.isFavorite ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 transition-transform duration-300 group-hover:animate-pulse">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+        </svg>
+      </button>
+
       <div class="flex h-48 w-48 items-center justify-center rounded-3xl border border-cyan-900/40 bg-linear-to-br from-slate-800 to-slate-950 p-4 shadow-lg">
-        <img
-          :src="showShiny
+        <img :src="showShiny
             ? pokemon.sprites.other['official-artwork'].front_shiny
             : pokemon.sprites.other['official-artwork'].front_default"
           :alt="pokemon.name"
@@ -147,7 +171,7 @@ onMounted(() => {
         />
       </div>
       
-      <button @click="showShiny = !showShiny" class=" cursor-pointer mt-4 rounded-lg border border-cyan-600/50 bg-cyan-950/20 px-4 py-1.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-cyan-800/40">
+      <button @click="showShiny = !showShiny" class="cursor-pointer mt-4 rounded-lg border border-cyan-600/50 bg-cyan-950/20 px-4 py-1.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-cyan-800/40">
         {{ showShiny ? 'Show Normal' : 'Show Shiny' }}
       </button>
 

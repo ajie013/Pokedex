@@ -14,6 +14,10 @@ const showViewModal = ref(false)
 const viewPokemon = () =>{
   showViewModal.value = true
 }
+
+const onToggleFavorite = (item: PokemonCard) =>{
+
+}
 </script>
 
 <template>
@@ -24,6 +28,10 @@ const viewPokemon = () =>{
       <div class="absolute h-28 w-28 rounded-full bg-cyan-400/10 blur-2xl transition-all duration-300 group-hover:bg-cyan-400/20" ></div>
       <p class="absolute top-2 left-2 font-light  text-[0.6rem] text-slate-400 font-mono tracking-wider text-xs mt-4">#{{ pokemon.id.toString().padStart(3, '0') }}</p>
       <img :src="pokemon.sprites.other['official-artwork'].front_default" :alt="pokemon.name" class="relative z-10 h-32 w-32 object-contain transition duration-300 group-hover:scale-110"/>
+      
+      <div v-if="pokemon.isFavorite" class=" object-contain absolute top-3 right-2 hover:scale-3d transition-all">
+          <img src="../../public/heart-shade.svg" class="h-3 w-6" alt="">
+        </div>
     </div>
 
     <div class="space-y-4 p-5">
@@ -49,7 +57,7 @@ const viewPokemon = () =>{
   </div>
 
 <Modal v-if="showViewModal" @close="showViewModal = false">
-  <PokemonDetails :pokemon="pokemon"/>
+  <PokemonDetails :pokemon="pokemon" @toggle-update="onToggleFavorite"/>
 </Modal>
 
 </template>

@@ -1,7 +1,7 @@
 import { onMounted, readonly, ref, type WatchSource } from 'vue'
 
 export const useFetch = <T>(urlSource: string | (() => string)) => {
-  const data = ref<any>([]) 
+  const data = ref<T>() 
   const loading = ref(true)
   const error = ref<string | null>(null)
 

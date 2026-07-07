@@ -25,6 +25,7 @@ export interface PokemonCard{
     }
   }
   abilities: Ability[]
+  isFavorite: boolean
 }
 
 

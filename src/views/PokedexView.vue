@@ -1,32 +1,38 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 
 import { useFetch } from "@/composables/useFetch";
+
 import type { Ability, Pokemon, PokemonCard as PokemonCardType, PokemonType, Stat } from "@/types/Pokemon";
 import PokemonCard from "@/components/PokemonCard.vue";
+import { usePokemonStore } from "@/stores/usePokemonStore";
 
+const store = usePokemonStore();
 
 const currentOffSet = ref(0);
 const limit = ref(30);
-
-const pokemonList = ref<PokemonCardType[]>([]);
 const loadingDetails = ref(false);
 
-const { data, loading, error, fetchData } = useFetch<Pokemon>(
-  () =>`https://pokeapi.co/api/v2/pokemon?limit=${limit.value}&offset=${currentOffSet.value}`
+const { data, loading, error, fetchData } = useFetch<Pokemon[]>(
+  () => `https://pokeapi.co/api/v2/pokemon?limit=${limit.value}&offset=${currentOffSet.value}`
 );
+
+const displayedPokemonList = computed(() => {
+  return store.pokemonList.slice(currentOffSet.value, currentOffSet.value + limit.value);
+});
 
 const formatPokemonDetails = (details: PokemonCardType): PokemonCardType => ({
   id: details.id,
   name: details.name,
-  cries:{
+  isFavorite: false,
+  cries: {
     latest: details.cries.latest,
     legacy: details.cries.legacy
   },
   base_experience: details.base_experience,
   height: details.height,
   weight: details.weight,
-  species:{
+  species: {
     name: details.species.name,
     url: details.species.url
   },
@@ -39,7 +45,7 @@ const formatPokemonDetails = (details: PokemonCardType): PokemonCardType => ({
     },
   })),
   abilities: details.abilities.map((ability: Ability) => ({
-    ability:{
+    ability: {
       name: ability.ability.name,
       url: ability.ability.url
     },
@@ -56,10 +62,8 @@ const formatPokemonDetails = (details: PokemonCardType): PokemonCardType => ({
   sprites: {
     other: {
       "official-artwork": {
-        front_default:
-          details.sprites.other["official-artwork"].front_default,
-        front_shiny:
-          details.sprites.other["official-artwork"].front_shiny,
+        front_default: details.sprites.other["official-artwork"].front_default,
+        front_shiny: details.sprites.other["official-artwork"].front_shiny,
       },
     },
   },
@@ -80,12 +84,11 @@ const fetchPokemonDetails = async () => {
         }
 
         const details: PokemonCardType = await response.json();
-
         return formatPokemonDetails(details);
       })
     );
 
-    pokemonList.value = cards;
+    store.addPokemonCards(cards);
   } catch (err) {
     console.error(err);
   } finally {
@@ -93,7 +96,7 @@ const fetchPokemonDetails = async () => {
   }
 };
 
-watch( data, (newData) => {
+watch(data, (newData) => {
     if (newData) {
       fetchPokemonDetails();
     }
@@ -102,6 +105,9 @@ watch( data, (newData) => {
 );
 
 watch(currentOffSet, () => {
+    if (displayedPokemonList.value.length === limit.value) {
+      return; 
+    }
     fetchData();
   },
   { immediate: true }
@@ -109,6 +115,8 @@ watch(currentOffSet, () => {
 
 const nextPage = () => {
   currentOffSet.value += limit.value;
+
+  console.log(store.pokemonList)
 };
 
 const prevPage = () => {
@@ -185,7 +193,7 @@ const prevPage = () => {
     <!-- Cards -->
     <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       <PokemonCard
-        v-for="pokemon in pokemonList"
+        v-for="pokemon in displayedPokemonList"
         :key="pokemon.name"
         :pokemon="pokemon"
       />

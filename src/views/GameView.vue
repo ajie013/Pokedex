@@ -7,13 +7,6 @@ import type {
 } from "@/types/Pokemon";
 import type { GamePokemonDetail } from "@/types/Game";
 
-interface PokemonListResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Pokemon[];
-}
-
 interface GameCard extends GamePokemonDetail {
   uuid: string;
   flipped: boolean;
@@ -23,7 +16,9 @@ interface GameCard extends GamePokemonDetail {
 const randomNumber = Math.floor(Math.random() * 1000);
 const pokemonList = ref<GamePokemonDetail[]>([]);
 const gameBoard = ref<GameCard[]>([]);
-const score = ref(0)
+const score = ref(0);
+const isGameOver = ref(false);
+
 const selectedCard = ref<{
   first: GameCard | null;
   second: GameCard | null;
@@ -32,7 +27,7 @@ const selectedCard = ref<{
   second: null,
 });
 
-const { data, loading, error } = useFetch<PokemonListResponse>(
+const { data, loading, error } = useFetch<Pokemon[]>(
   () => `https://pokeapi.co/api/v2/pokemon?limit=10&offset=${randomNumber}`
 );
 
@@ -76,7 +71,7 @@ const fetchPokemonDetails = async () => {
 };
 
 const match = (card: GameCard) => {
-  if (isChecking.value) return;
+  if (isChecking.value || isGameOver.value) return;
   if (card.flipped || card.matched) {
     return;
   }
@@ -120,7 +115,8 @@ const match = (card: GameCard) => {
 const resetGame = () => {
   selectedCard.value.first = null;
   selectedCard.value.second = null;
-  score.value = 0
+  score.value = 0;
+  isGameOver.value = false;
   
   gameBoard.value = shuffle(
     [...pokemonList.value, ...pokemonList.value].map((pokemon) => ({
@@ -132,9 +128,17 @@ const resetGame = () => {
   );
 };
 
-watch(
-  data,
-  async (newData) => {
+watch( gameBoard, (newBoard) => {
+    if (newBoard.length > 0 && newBoard.every((item) => item.matched)) {
+      setTimeout(() => {
+        isGameOver.value = true;
+      }, 600);
+    }
+  },
+  { deep: true }
+);
+
+watch(data, async (newData) => {
     if (!newData) return;
     await fetchPokemonDetails();
   },
@@ -143,12 +147,33 @@ watch(
 </script>
 
 <template>
-  <div class="h-dvh overflow-hidden bg-tech-bg text-slate-100 font-mono flex flex-col">
+  <div class="h-dvh overflow-hidden bg-tech-bg text-slate-100 font-mono flex flex-col relative">
+    
+    <div v-if="isGameOver" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div class="border-2 border-tech-cyan bg-tech-panel p-6 sm:p-8 max-w-sm w-full rounded-lg text-center shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+        <h2 class="text-2xl sm:text-3xl font-black tracking-widest text-tech-cyan uppercase mb-2">
+          COMPLETED
+        </h2>
+        <p class="text-xs text-slate-400 uppercase mb-6">
+          Memory matrix successfully aligned.
+        </p>
+        <div class="bg-black/40 border border-tech-cyan-border/30 rounded py-3 mb-6">
+          <p class="text-sm uppercase text-slate-300">Final Score</p>
+          <p class="text-3xl font-bold text-tech-cyan mt-1">{{ score }}</p>
+        </div>
+        <button 
+          class="cursor-pointer w-full py-3 bg-tech-cyan/10 hover:bg-tech-cyan/20 border-2 border-tech-cyan text-tech-cyan rounded text-sm font-bold uppercase tracking-wider transition-colors"
+          @click="resetGame"
+        >
+          Initialize Next Run
+        </button>
+      </div>
+    </div>
+
     <header class="text-center py-3 px-4 shrink-0">
       <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-widest text-tech-cyan uppercase">
         &lt;PokeMatch /&gt;
       </h1>
-
       <p class="text-[10px] sm:text-xs text-slate-400 mt-1 uppercase">Initialize memory matrix pairing sequence...</p>
     </header>
 
@@ -163,11 +188,10 @@ watch(
       <div class="flex justify-between items-center">
         <p>Score: {{ score }}</p>
 
-        <button class=" cursor-pointer mb-3 self-center px-5 py-2 border-2 border-tech-cyan rounded text-xs uppercase shrink-0" @click="resetGame">
+        <button class="cursor-pointer mb-3 self-center px-5 py-2 border-2 border-tech-cyan rounded text-xs uppercase shrink-0" @click="resetGame">
           Reset Game
         </button>
       </div>
-    
 
       <div class="flex-1 grid grid-cols-4 grid-rows-5 gap-2">
         <div v-for="card in gameBoard" :key="card.uuid" class="card-container cursor-pointer" @click="match(card)">
@@ -182,7 +206,6 @@ watch(
                 :src="card.sprites.other['official-artwork'].front_default"
                 :alt="card.name"
               />
-
               <span class="mt-1 text-[8px] sm:text-[10px] uppercase truncate w-full text-center">{{ card.name }}</span>
             </div>
           </div>
@@ -232,5 +255,13 @@ watch(
 
 .card-front {
   transform: rotateY(180deg);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }
 </style>

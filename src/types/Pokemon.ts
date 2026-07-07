@@ -28,8 +28,6 @@ export interface PokemonCard{
   isFavorite: boolean
 }
 
-
-
 export interface Ability{
   ability:{
     name: string,

@@ -7,6 +7,9 @@ import type { Ability, Pokemon, PokemonCard as PokemonCardType, PokemonType, Sta
 import PokemonCard from "@/components/PokemonCard.vue";
 import { usePokemonStore } from "@/stores/usePokemonStore";
 import Header from "@/components/Header.vue";
+import { POKEMONTYPES } from "@/constants/Pokemon";
+import PokemonFilter from "@/components/PokemonFilter.vue";
+import { formatPokemonDetails } from "@/utils/PokemonFormatter";
 
 const store = usePokemonStore();
 
@@ -18,56 +21,11 @@ const { data, loading, error, fetchData } = useFetch<Pokemon[]>(
   () => `https://pokeapi.co/api/v2/pokemon?limit=${limit.value}&offset=${currentOffSet.value}`
 );
 
-const displayedPokemonList = computed(() => {
-  return store.pokemonList.slice(currentOffSet.value, currentOffSet.value + limit.value);
-});
+const selectedFilter = ref("")
 
-const formatPokemonDetails = (details: PokemonCardType): PokemonCardType => ({
-  id: details.id,
-  name: details.name,
-  isFavorite: false,
-  cries: {
-    latest: details.cries.latest,
-    legacy: details.cries.legacy
-  },
-  base_experience: details.base_experience,
-  height: details.height,
-  weight: details.weight,
-  species: {
-    name: details.species.name,
-    url: details.species.url
-  },
-  stats: details.stats.map((stat: Stat) => ({
-    base_stat: stat.base_stat,
-    effort: stat.effort,
-    stat: {
-      name: stat.stat.name,
-      url: stat.stat.url,
-    },
-  })),
-  abilities: details.abilities.map((ability: Ability) => ({
-    ability: {
-      name: ability.ability.name,
-      url: ability.ability.url
-    },
-    is_hidden: ability.is_hidden,
-    slot: ability.slot
-  })),
-  types: details.types.map((t: PokemonType) => ({
-    slot: t.slot,
-    type: {
-      name: t.type.name,
-      url: t.type.url,
-    },
-  })),
-  sprites: {
-    other: {
-      "official-artwork": {
-        front_default: details.sprites.other["official-artwork"].front_default,
-        front_shiny: details.sprites.other["official-artwork"].front_shiny,
-      },
-    },
-  },
+const displayedPokemonList = computed(() => {
+  return store.pokemonList.slice(currentOffSet.value, currentOffSet.value + limit.value)
+  .filter(item => selectedFilter.value === "" || item.types.some(type => type.type.name === selectedFilter.value.toLowerCase()));
 });
 
 const fetchPokemonDetails = async () => {
@@ -125,11 +83,15 @@ const prevPage = () => {
     currentOffSet.value -= limit.value;
   }
 };
+
+const onFilter = (type: string) =>{
+  selectedFilter.value = type
+}
 </script>
 
 <template>
   <section class="space-y-8">
-
+  
     <Header 
       sub="Pokémon Database"
       title-first="Poké" 
@@ -154,6 +116,8 @@ const prevPage = () => {
       </div>
     </Header>
 
+    <PokemonFilter @filter="onFilter"/>
+
     <div v-if="loading || loadingDetails" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 py-24 text-center backdrop-blur-md">
       <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent"></div>
       <p class="text-xs font-bold uppercase tracking-widest text-cyan-400 animate-pulse">Syncing Database Elements...</p>
@@ -169,8 +133,18 @@ const prevPage = () => {
       <p class="mt-1 text-xs text-slate-400 uppercase">Failed to retrieve API datasets. Please reboot interface link later.</p>
     </div>
 
+    <div v-else-if="displayedPokemonList.length === 0" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-slate-800/50 text-slate-500">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </div>
+      <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300">No Signatures Identified</h3>
+      <p class="text-[11px] text-slate-500 uppercase mt-1">No {{ selectedFilter }} types match inside this indexed page scope.</p>
+    </div>
+
     <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      <PokemonCard v-for="pokemon in displayedPokemonList" :key="pokemon.name":pokemon="pokemon"/>
+      <PokemonCard v-for="pokemon in displayedPokemonList" :key="pokemon.name" :pokemon="pokemon"/>
     </div>
 
   </section>

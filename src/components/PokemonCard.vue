@@ -2,7 +2,7 @@
 import type { PokemonCard } from "@/types/Pokemon";
 import Modal from "./Modal.vue";
 import { ref } from "vue";
-import { TYPECOLORS } from "@/constants/TypeColors.ts";
+import { TYPECOLORS } from "@/constants/Pokemon.ts";
 import PokemonDetails from "./PokemonDetails.vue";
 
 defineProps<{

@@ -1,3 +1,5 @@
+import { ref } from "vue";
+
 export const TYPECOLORS: Record<string, string> = {
   NORMAL: "bg-slate-500 text-white",
   FIRE: "bg-red-500 text-white",
@@ -18,3 +20,24 @@ export const TYPECOLORS: Record<string, string> = {
   STEEL: "bg-gray-400 text-slate-900",
   FAIRY: "bg-pink-300 text-slate-900",
 };
+
+export const POKEMONTYPES = ref([
+  'Normal',
+  'Fire',
+  'Water',
+  'Grass',
+  'Electric',
+  'Ice',
+  'Fighting',
+  'Poison',
+  'Ground',
+  'Flying',
+  'Psychic',
+  'Bug',
+  'Rock',
+  'Ghost',
+  'Dragon',
+  'Dark',
+  'Steel',
+  'Fairy'
+])

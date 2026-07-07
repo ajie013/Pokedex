@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { TYPECOLORS } from '@/constants/TypeColors';
+import { TYPECOLORS } from '@/constants/Pokemon';
 import type {
   PokemonCard,
   PokemonSpecies,

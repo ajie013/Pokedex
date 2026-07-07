@@ -148,7 +148,7 @@ watch(data, async (newData) => {
 </script>
 
 <template>
-  <div class="h-dvh overflow-hidden bg-tech-bg text-slate-100 font-mono flex flex-col relative">
+  <div class="h-dvh overflow-hidden bg-tech-bg text-slate-100 flex flex-col relative">
     
     <div v-if="isGameOver" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
       <div class="border-2 border-tech-cyan bg-tech-panel p-6 sm:p-8 max-w-sm w-full rounded-lg text-center shadow-[0_0_20px_rgba(6,182,212,0.3)]">
@@ -171,12 +171,12 @@ watch(data, async (newData) => {
       </div>
     </div>
 
- <Header 
+    <Header 
       sub="SYSTEM: ACTIVE" 
       title-first="<Poké" 
       title-second="Match />" 
       content="Initialize memory matrix pairing sequence... Select matching tiles to align the data grid."
-      class="m-4 shrink-0"
+      class=" shrink-0"
     >
       <div class="flex items-center gap-4 bg-slate-950/50 border border-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm shadow-inner min-w-[240px] justify-between self-start lg:self-center">
         <div class="flex flex-col">
@@ -207,7 +207,7 @@ watch(data, async (newData) => {
 
     <div v-else-if="error" class="flex-1 flex justify-center items-center p-4">{{ error }}</div>
 
-    <div v-else class="flex-1 flex flex-col px-3 pb-3 overflow-hidden">
+    <div v-else class="flex-1 flex flex-col px-3 pb-3 mt-2 overflow-hidden">
       <div class="flex-1 grid grid-cols-4 grid-rows-5 gap-2">
         <div v-for="card in gameBoard" :key="card.uuid" class="card-container cursor-pointer" @click="match(card)">
           <div class="card-inner" :class="{'is-flipped': card.flipped || card.matched,'is-matched': card.matched}">
@@ -216,11 +216,7 @@ watch(data, async (newData) => {
             </div>
 
             <div class="card-front rounded-lg border-2 border-tech-cyan bg-tech-panel p-2">
-              <img
-                class="w-[65%] h-[65%] object-contain"
-                :src="card.sprites.other['official-artwork'].front_default"
-                :alt="card.name"
-              />
+              <img class="w-[65%] h-[65%] object-contain" :src="card.sprites.other['official-artwork'].front_default" :alt="card.name"/>
               <span class="mt-1 text-[8px] sm:text-[10px] uppercase truncate w-full text-center">{{ card.name }}</span>
             </div>
           </div>

@@ -57,21 +57,10 @@ const fetchPokemonDetails = async () => {
 
   try {
     const cards = await Promise.all(
-      data.value.map(async (pokemon: Pokemon) => {
-        const response = await fetch(pokemon.url);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch Pokémon");
-        }
-
-        const details: PokemonCardType = await response.json();
-        return formatPokemonDetails(details);
-      })
-    );
-
-    store.addPokemonCards(cards);
-
-   
+      data.value.map(store.getOrFetchPokemon)
+    )
+    
+    store.addPokemonCards(cards);  
   } catch (err) {
     console.error(err);
   } finally {
@@ -96,12 +85,12 @@ watch(currentOffSet, () => {
   { immediate: true }
 );
 
-const hasNextPage = computed(() => {
-  return currentOffSet.value + limit.value < filteredPokemonList.value.length;
-});
+// const hasNextPage = computed(() => {
+//   return currentOffSet.value + limit.value < filteredPokemonList.value.length;
+// });
 
 const nextPage = () => {
-  if (!hasNextPage.value) return;
+  // if (!hasNextPage.value) return;
   currentOffSet.value += limit.value;
 };
 
@@ -113,6 +102,7 @@ const prevPage = () => {
 
 const onFilter = (type: string) =>{
   selectedFilter.value = type;
+  currentOffSet.value = 0
 };
 
 const searchPokemon = async () => {
@@ -128,16 +118,7 @@ const searchPokemon = async () => {
     );
 
     const cards = await Promise.all(
-      pokemons.map(async (item: Pokemon) => {
-        const response = await fetch(item.url);
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch Pokémon");
-        }
-
-        const details: PokemonCardType = await response.json();
-        return formatPokemonDetails(details);
-      })
+      pokemons.map(store.getOrFetchPokemon)
     );
 
     store.addPokemonCards(cards);
@@ -149,9 +130,15 @@ const searchPokemon = async () => {
   }
 };
 
+let searchTimeout: ReturnType<typeof setTimeout>;
+
 watch(searchInput, () =>{
-  searchPokemon()
-  currentOffSet.value = 0
+  clearTimeout(searchTimeout);
+
+  searchTimeout = setTimeout(() => {
+      searchPokemon();
+      currentOffSet.value = 0;
+  }, 300);
 }, {immediate: true})
 
 
@@ -171,7 +158,7 @@ watch(searchInput, () =>{
           IDX {{ Math.floor(currentOffSet / limit) + 1 }}
         </div>
 
-        <button @click="nextPage" :disabled="!hasNextPage" class="cursor-pointer rounded-lg bg-cyan-400 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:bg-cyan-300 hover:shadow-md hover:shadow-cyan-400/30">
+        <button @click="nextPage" class="cursor-pointer rounded-lg bg-cyan-400 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:bg-cyan-300 hover:shadow-md hover:shadow-cyan-400/30">
           Next →
         </button>
       </div>
@@ -210,7 +197,7 @@ watch(searchInput, () =>{
       <p class="mt-1 text-xs text-slate-400 uppercase">Failed to retrieve API datasets. Please reboot interface link later.</p>
     </div>
 
-    <div v-else-if="displayedPokemonList.length === 0 && !loadingDetails" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
+    <div v-else-if="displayedPokemonList.length === 0 && !loadingDetails && !loading" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
       <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-slate-800/50 text-slate-500">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

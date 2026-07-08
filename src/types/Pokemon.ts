@@ -80,6 +80,13 @@ export interface PokemonSpecies {
   hatch_counter: number;
   egg_groups: EggGroup[];
   evolution_chain: EvolutionChainUrl;
+  is_legendary: boolean
+  is_mythical: boolean
+
+  generation: {
+    name: string;
+    url: string;
+  };
 }
 
 export interface EggGroup {

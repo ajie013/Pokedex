@@ -35,17 +35,21 @@ const toggleFavorites = () => {
   }
 };
 
-const playCry = (url: string) =>{
-  const audio: HTMLAudioElement = new Audio(url);
+const playCry = (url: string | undefined) => {
+  if (!url) {
+    console.warn("No cry audio resource path found for this Pokemon.");
+    return;
+  }
 
+  const audio: HTMLAudioElement = new Audio(url);
   audio.volume = 0.5; 
 
   audio.play()
     .then(() => {
-      console.log("Music is playing smoothly!");
+      console.log("Cry played smoothly!");
     })
     .catch((error: Error) => {
-      console.error("Playback failed. Ensure user interacted with the page first:", error);
+      console.warn("Audio skipped: Interaction required or unsupported audio source asset.", error.message);
     });
 }
 
@@ -144,6 +148,15 @@ onMounted(() => {
   playCry(props.pokemon.cries.latest)
 });
 
+const retryImage = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  const src = img.src;
+
+  setTimeout(() => {
+    img.src = "";
+    img.src = src;
+  }, 1000);
+};
 </script>
 
 <template>
@@ -162,7 +175,7 @@ onMounted(() => {
       </button>
 
       <div class="flex h-48 w-48 items-center justify-center rounded-3xl border border-cyan-900/40 bg-linear-to-br from-slate-800 to-slate-950 p-4 shadow-lg">
-        <img :src="showShiny
+        <img @error="retryImage" :src="showShiny
             ? pokemon.sprites.other['official-artwork'].front_shiny
             : pokemon.sprites.other['official-artwork'].front_default"
           :alt="pokemon.name"

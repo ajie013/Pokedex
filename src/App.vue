@@ -21,6 +21,8 @@ const scrollToTop = () => {
 
 onMounted(async () => {
   await store.fetchSearchIndex()
+  await store.startBackgroundSync()
+  
   window.addEventListener("scroll", handleScroll);
 });
 

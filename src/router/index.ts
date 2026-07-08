@@ -17,8 +17,12 @@ const router = createRouter({
       component: () => import('@/views/FavoriteView.vue'),
     },
     {
-      path: '/game',
+      path: '/dasd',
       component: () => import('@/views/GameView.vue'),
+    },
+    {
+      path: '/game',
+      component: () => import('@/views/PokeMatchView.vue'),
     },
   ],
 })

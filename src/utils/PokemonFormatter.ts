@@ -41,8 +41,10 @@ export const formatPokemonDetails = (details: PokemonCard): PokemonCard => ({
   sprites: {
     other: {
       "official-artwork": {
-        front_default: details.sprites.other["official-artwork"].front_default,
-        front_shiny: details.sprites.other["official-artwork"].front_shiny,
+         front_default:
+          `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${details.id}.png`,
+        front_shiny:
+          `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/${details.id}.png`,
       },
     },
   },

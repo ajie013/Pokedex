@@ -8,7 +8,6 @@ interface NavLink {
   icon: "home" | "ball" | "heart" | "gamepad";
 }
 
-// Updated paths to match your custom views flawlessly
 const navLinks = ref<NavLink[]>([
   { name: "Home", path: "/", icon: "home" },
   { name: "Pokédex", path: "/pokedex", icon: "ball" },

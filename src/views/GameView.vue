@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 import { ref, watch } from "vue";
 import { useFetch } from "@/composables/useFetch";
 import type {
@@ -27,6 +28,8 @@ const selectedCard = ref<{
   first: null,
   second: null,
 });
+
+console.log(gameBoard)
 
 const { data, loading, error } = useFetch<Pokemon[]>(
   () => `https://pokeapi.co/api/v2/pokemon?limit=10&offset=${randomNumber}`

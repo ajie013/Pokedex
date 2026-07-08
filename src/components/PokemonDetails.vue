@@ -144,7 +144,6 @@ onMounted(() => {
   playCry(props.pokemon.cries.latest)
 });
 
-
 </script>
 
 <template>

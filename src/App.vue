@@ -2,9 +2,10 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { RouterView } from "vue-router";
 import Navigation from "./components/Navigation.vue";
+import { usePokemonStore } from "./stores/usePokemonStore.ts";
 
 const isVisible = ref(false);
-
+const store = usePokemonStore()
 const handleScroll = () => {
   if (typeof window !== "undefined") {
     isVisible.value = window.scrollY > 100;
@@ -18,7 +19,8 @@ const scrollToTop = () => {
   });
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await store.fetchSearchIndex()
   window.addEventListener("scroll", handleScroll);
 });
 

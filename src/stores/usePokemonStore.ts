@@ -38,29 +38,29 @@ export const usePokemonStore = defineStore('pokemon', () => {
     }
   };
 
-  const startBackgroundSync = async () => {
-    if (isBackgroundSyncing.value) return;
-    isBackgroundSyncing.value = true;
+  // const startBackgroundSync = async () => {
+  //   if (isBackgroundSyncing.value) return;
+  //   isBackgroundSyncing.value = true;
 
-    for (const item of searchIndex.value) {
-      const alreadyLoaded = pokemonList.value.some(p => p.name === item.name);
+  //   for (const item of searchIndex.value) {
+  //     const alreadyLoaded = pokemonList.value.some(p => p.name === item.name);
       
-      if (!alreadyLoaded) {
-        try {
-          const res = await fetch(item.url);
-          if (!res.ok) continue;
+  //     if (!alreadyLoaded) {
+  //       try {
+  //         const res = await fetch(item.url);
+  //         if (!res.ok) continue;
           
-          const rawDetails = await res.json();
-          addPokemonCards([formatPokemonDetails(rawDetails)]);
+  //         const rawDetails = await res.json();
+  //         addPokemonCards([formatPokemonDetails(rawDetails)]);
 
-          await new Promise(resolve => setTimeout(resolve, 120));
-        } catch (err) {
-          console.error(`Background fetch failed for ${item.name}:`, err);
-        }
-      }
-    }
-    isBackgroundSyncing.value = false;
-  };
+  //         await new Promise(resolve => setTimeout(resolve, 120));
+  //       } catch (err) {
+  //         console.error(`Background fetch failed for ${item.name}:`, err);
+  //       }
+  //     }
+  //   }
+  //   isBackgroundSyncing.value = false;
+  // };
 
   return { 
     pokemonList, 
@@ -69,6 +69,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
     isBackgroundSyncing, 
     addPokemonCards, 
     fetchSearchIndex, 
-    startBackgroundSync 
+    // startBackgroundSync 
   };
 });

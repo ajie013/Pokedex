@@ -10,7 +10,7 @@ const totalFavorites = computed(() => store.pokemonList.filter(p => p.isFavorite
 onMounted(async () => {
   await store.fetchSearchIndex(); 
   
-  store.startBackgroundSync(); 
+  //store.startBackgroundSync(); 
 });
 </script>
 

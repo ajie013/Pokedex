@@ -7,7 +7,7 @@ import type { ApiResponse } from "./types/ApiResult.ts";
 import { useFetch } from "./composables/useFetch.ts";
 
 const store = usePokemonStore();
-
+//fetches all the pokemon (name and url)
 const { data, loading, error } = useFetch<ApiResponse>(
   "https://pokeapi.co/api/v2/pokemon?limit=1500&offset=0"
 );
@@ -15,7 +15,7 @@ const { data, loading, error } = useFetch<ApiResponse>(
 watch(data, (newData) => {
   if (newData?.results) {
     store.setIndexData([...newData.results]);
-    store.startBackgroundSync();
+    store.startBackgroundSync(); //fetch pokemons details
   }
 });
 

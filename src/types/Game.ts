@@ -13,6 +13,7 @@ export interface GameCard extends GamePokemonDetail {
   matched: boolean;
 }
 
+
 export interface GamePokemonDetail{
   id: number  
   name: string,

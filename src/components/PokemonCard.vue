@@ -4,16 +4,16 @@ import Modal from "./Modal.vue";
 import { onMounted, onUnmounted, ref, computed } from "vue";
 import {  TYPECOLORS } from "@/constants/Pokemon.ts";
 import PokemonDetails from "./PokemonDetails.vue";
+import { usePokemonStore } from "@/stores/usePokemonStore.ts";
 
+
+const store = usePokemonStore()
 const props = defineProps<{
   pokemon: PokemonCard;
 }>();
 
 const showViewModal = ref(false)
 const species = ref<PokemonSpecies | null>(null);
-const viewPokemon = () =>{
-  showViewModal.value = true
-}
 const retryCount = ref(0);
 const MAX_RETRIES = 3;
 const cardRef = ref<HTMLElement | null>(null);;
@@ -47,41 +47,19 @@ onMounted( async() => {
     observer.observe(cardRef.value);
   }
 
-  await getSpecies()
+  species.value = await store.getOrFetchSpecie(props.pokemon.species.url)
 });
 
-
-
-const getSpecies = async () =>{
-  try {
-    const response = await fetch(props.pokemon.species.url)
-    const data = await response.json()
-    species.value = formatSpecie(data)
-  } catch (err) {
-    console.error("Failed to parse species rarity metadata matrix:", err);
-  }
+const viewPokemon = () =>{
+  showViewModal.value = true
 }
-
-const formatSpecie = (item: any): PokemonSpecies => ({
-  gender_rate: item.gender_rate,
-  hatch_counter: item.hatch_counter,
-  egg_groups: item.egg_groups,
-  evolution_chain: item.evolution_chain,
-  is_legendary: item.is_legendary ?? false,
-  is_mythical: item.is_mythical ?? false,
-  generation: item.generation
-});
 
 const cardRarityClasses = computed(() => {
   if (!species.value) return 'border-cyan-900/30 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)]';
   
-  if (species.value.is_legendary) {
-    return 'border-amber-500/50 legendary-fire';
-  }
-  
-  if (species.value.is_mythical) {
-    return 'border-purple-500/50 mythical-fire';
-  }
+  if (species.value.is_legendary) return 'border-amber-500/50 legendary-fire';
+
+  if (species.value.is_mythical) return 'border-purple-500/50 mythical-fire';
   
   return 'border-cyan-900/30 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)]';
 });
@@ -89,8 +67,6 @@ const cardRarityClasses = computed(() => {
 onUnmounted(() => {
   observer?.disconnect();
 });
-
-
 
 const retryImage = (event: Event) => {
   if (retryCount.value >= MAX_RETRIES) {
@@ -119,19 +95,9 @@ const getTypeIcon = (type: string) => {
 </script>
 
 <template>
-  <div 
-    :title="pokemon.name" 
-    @click="viewPokemon" 
-    :class="['group h-full flex flex-col cursor-pointer overflow-hidden rounded-3xl bg-linear-to-b from-slate-900 to-slate-950 transition-all duration-300 hover:-translate-y-2', cardRarityClasses]"
-  >
+  <div :title="pokemon.name" @click="viewPokemon" :class="['group h-full flex flex-col cursor-pointer overflow-hidden rounded-3xl bg-linear-to-b from-slate-900 to-slate-950 transition-all duration-300 hover:-translate-y-2', cardRarityClasses]">
     <div class="relative flex h-44 items-center justify-center overflow-hidden border-b border-cyan-900/20 bg-linear-to-br from-slate-800 via-slate-900 to-slate-950">
-     <div 
-  v-if="species?.is_legendary || species?.is_mythical"
-  :class="[
-    'absolute inset-0 pointer-events-none mix-blend-screen opacity-75 group-hover:opacity-100 transition-opacity duration-200 z-0',
-    species.is_legendary ? 'legendary-particles' : 'mythical-particles'
-  ]"
-></div>
+     <div v-if="species?.is_legendary || species?.is_mythical" :class="['absolute inset-0 pointer-events-none mix-blend-screen opacity-75 group-hover:opacity-100 transition-opacity duration-200 z-0', species.is_legendary ? 'legendary-particles' : 'mythical-particles']"></div>
 
       <p class="absolute top-2 left-2 mt-4 font-mono text-[0.6rem] tracking-wider text-slate-400">#{{ pokemon.id.toString().padStart(3, "0") }}</p>
 
@@ -162,18 +128,9 @@ const getTypeIcon = (type: string) => {
         </span>
       </div>
     <div class="mt-auto flex flex-wrap justify-center gap-2 pt-4">
-      <span v-for="type in pokemon.types" :key="type.type.name" :class="['inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm',
-          TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white']">
-        <img
-          :src="getTypeIcon(type.type.name)"
-          :alt="type.type.name"
-          class="h-4 w-4 object-contain"
-          @error="($event.target as HTMLImageElement).style.display = 'none'"
-        />
-
-        <span class="capitalize">
-          {{ type.type.name }}
-        </span>
+      <span v-for="type in pokemon.types" :key="type.type.name" :class="['inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm', TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white']">
+        <img :src="getTypeIcon(type.type.name)" :alt="type.type.name" class="h-4 w-4 object-contain" @error="($event.target as HTMLImageElement).style.display = 'none'"/>
+        <span class="capitalize">{{ type.type.name }}</span>
       </span>
     </div>
     </div>

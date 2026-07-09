@@ -1,5 +1,5 @@
 import type { GamePokemonDetail } from "@/types/Game";
-import type { Ability, PokemonCard, PokemonType, Stat } from "@/types/Pokemon";
+import type { Ability, PokemonCard, PokemonSpecies, PokemonType, Stat } from "@/types/Pokemon";
 
 export const formatPokemonDetails = (details: PokemonCard): PokemonCard => ({
   id: details.id,
@@ -63,3 +63,13 @@ export const formatPokemonGameBoard = (details: GamePokemonDetail): GamePokemonD
     },
   },
 })
+
+export const formatSpecie = (item: PokemonSpecies): PokemonSpecies => ({
+  gender_rate: item.gender_rate,
+  hatch_counter: item.hatch_counter,
+  egg_groups: item.egg_groups,
+  evolution_chain: item.evolution_chain,
+  is_legendary: item.is_legendary ?? false,
+  is_mythical: item.is_mythical ?? false,
+  generation: item.generation
+});

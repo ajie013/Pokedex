@@ -2,20 +2,11 @@
 
 import { ref, watch } from "vue";
 import { useFetch } from "@/composables/useFetch";
-import type {
-  Pokemon,
-  PokemonCard,
-} from "@/types/Pokemon";
-import type { GamePokemonDetail } from "@/types/Game";
+import type { Pokemon } from "@/types/Pokemon";
+import type { GameCard, GamePokemonDetail } from "@/types/Game";
 import Header from "@/components/Header.vue";
 import { formatPokemonGameBoard } from "@/utils/PokemonFormatter";
 import type { ApiResponse } from "@/types/ApiResult";
-
-interface GameCard extends GamePokemonDetail {
-  uuid: string;
-  flipped: boolean;
-  matched: boolean;
-}
 
 const randomNumber = Math.floor(Math.random() * 1000);
 const pokemonList = ref<GamePokemonDetail[]>([]);

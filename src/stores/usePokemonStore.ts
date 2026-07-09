@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { PokemonCard, Stat, Ability, PokemonType, Pokemon } from '@/types/Pokemon';
-import { formatPokemonDetails } from '@/utils/PokemonFormatter';
+import type { PokemonCard, Stat, Ability, PokemonType, Pokemon, PokemonSpecies } from '@/types/Pokemon';
+import { formatPokemonDetails, formatSpecie } from '@/utils/PokemonFormatter';
 import { useFetch } from '@/composables/useFetch';
 import type { ApiResponse } from '@/types/ApiResult';
 
@@ -9,10 +9,11 @@ export const usePokemonStore = defineStore('pokemon', () => {
   const pokemonList = ref<PokemonCard[]>([]);
   const searchIndex = ref<{ name: string; url: string }[]>([]);
   const isIndexLoaded = ref(false);
-  const isIndexing = ref(false);
   const isBackgroundSyncing = ref(false);
   const pokemonMap = ref(new Map<string, PokemonCard>());
-
+  const speciesMap = ref(new Map<string, PokemonSpecies>())
+  const speciesRequests = new Map<string, Promise<PokemonSpecies>>();
+  
   const addPokemonCards = (cards: PokemonCard[]) => {
     cards.forEach(card => {
       if (!pokemonMap.value.has(card.name)) {
@@ -28,7 +29,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     return pokemonMap.value.get(name);
   }
 
-  const setIndexData = (results: { name: string; url: string }[]) => {
+ const setIndexData = (results: { name: string; url: string }[]) => {
     searchIndex.value = results;
     isIndexLoaded.value = true;
   };
@@ -60,6 +61,42 @@ export const usePokemonStore = defineStore('pokemon', () => {
     isBackgroundSyncing.value = false;
   };
 
+
+  const getOrFetchSpecie = async (url: string) => {
+    const existing = speciesMap.value.get(url);
+
+    if (existing) return existing;
+
+    const pendingRequest = speciesRequests.get(url);
+
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
+    const request = (async () => {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error("Failed");
+      }
+
+      const raw = await response.json();
+      const species = formatSpecie(raw);
+
+      speciesMap.value.set(url, species);
+
+      return species;
+    })();
+
+    speciesRequests.set(url, request);
+
+    try {
+      return await request;
+    } finally {
+      speciesRequests.delete(url);
+    }
+  };
+  
   //check if pokemon is already in the store, returns the existing data if yes
   //continue fetching if no
   //adds the new pokemon in the store
@@ -93,6 +130,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     setIndexData, 
     startBackgroundSync,
     getOrFetchPokemon,
-    getPokemon
+    getPokemon,
+    getOrFetchSpecie
   };
 });

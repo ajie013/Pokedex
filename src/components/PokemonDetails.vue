@@ -65,15 +65,8 @@ const getTypeIcon = (type: string) => {
 }
 
 const fetchSpecies = async () => {
-  try {
-    const response = await fetch(props.pokemon.species.url);
-    if (!response.ok) throw new Error("Failed to fetch species");
-    
-    species.value = await response.json();
-    await fetchEvolutionChain();
-  } catch (err) {
-    console.error("Error fetching species data:", err);
-  }
+  species.value = await store.getOrFetchSpecie(props.pokemon.species.url)
+  await fetchEvolutionChain();
 }
 
 const fetchWeaknesses = async () => {
@@ -147,9 +140,11 @@ const maleRate = computed(() => {
 
 const totalStats = computed(() => props.pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0));
 
-onMounted(() => {
-  fetchWeaknesses();
-  fetchSpecies();
+onMounted(async() => {
+  await Promise.all([
+      fetchSpecies(),
+      fetchWeaknesses()
+  ]);
   playCry(props.pokemon.cries.latest)
 })
 

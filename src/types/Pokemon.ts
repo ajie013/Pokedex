@@ -71,10 +71,6 @@ export interface Form{
   url: string
 }
 
-export interface PokemonTypeColors{
-
-}
-
 export interface PokemonSpecies {
   gender_rate: number;
   hatch_counter: number;

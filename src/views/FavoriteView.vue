@@ -4,25 +4,34 @@ import PokemonCard from '@/components/PokemonCard.vue';
 import { usePokemonStore } from '@/stores/usePokemonStore';
 import Header from '@/components/Header.vue';
 import PokemonFilter from '@/components/PokemonFilter.vue';
+import PokemonSearch from '@/components/PokemonSearch.vue';
+import { getNoPokemonFoundMessage } from '@/utils/PokemonErrorLabel';
 
 const store = usePokemonStore();
-
-const favoritedPokemons = computed(() => store.pokemonList.filter((item) => item.isFavorite));
-
+const searchInput = ref("")
 const selectedFilter = ref("");
 
-const onFilter = (type: string) => {
-  selectedFilter.value = type;
-};
+//filter favorite pokemons
+const favoritedPokemons = computed(() => store.pokemonList.filter((item) => item.isFavorite));
 
-const displayedPokemons = computed(() => {
-  if (selectedFilter.value === "") {
-    return favoritedPokemons.value;
+//filter pokemon based on filter & search
+const filteredPokemonList = computed(() => {
+  const query = searchInput.value.trim().toLowerCase();
+  const filterType = selectedFilter.value.trim().toLowerCase();
+
+  let filtered = favoritedPokemons.value
+
+  if (query) {
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
   }
-  return favoritedPokemons.value.filter((item) =>
-    item.types.some((t) => t.type.name === selectedFilter.value.toLowerCase())
-  );
+  
+  if (filterType) {
+    filtered = filtered.filter(p => p.types.some(t => t.type.name.toLowerCase() === filterType));
+  }
+
+  return filtered;
 });
+
 </script>
 
 <template>
@@ -33,6 +42,9 @@ const displayedPokemons = computed(() => {
 
     <!-- FILTER -->
     <PokemonFilter v-if="favoritedPokemons.length > 0" v-model="selectedFilter"/>
+
+    <!-- SEARCH -->
+    <PokemonSearch v-model:search="searchInput"/>
 
     <!-- NO FAVOURITE POKEMON -->
     <div v-if="favoritedPokemons.length === 0" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
@@ -46,17 +58,19 @@ const displayedPokemons = computed(() => {
     </div>
 
     <!-- NO POKEMON FOUND -->
-    <div v-else-if="displayedPokemons.length === 0" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
+    <div v-else-if="filteredPokemonList.length === 0" class="rounded-2xl border border-cyan-900/30 bg-slate-900/40 p-16 text-center backdrop-blur-md animate-fade-in">
       <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-slate-800/50 text-slate-500">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
       </div>
-      <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300">No Target Elements Pinned</h3>
-      <p class="text-[11px] text-slate-500 uppercase mt-1">You haven't pinned any {{ selectedFilter }} types to your active favorite vault yet.</p>
+      <h3 class="text-xs font-bold uppercase tracking-widest text-slate-300">No Signatures Identified</h3>
+      <p class="text-[11px] text-slate-500 uppercase mt-1">{{ getNoPokemonFoundMessage(searchInput.trim(), selectedFilter.trim()) }}</p>
     </div>
 
     <!-- POKEMON LIST -->
     <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 animate-fade-in">
-      <PokemonCard v-for="pokemon in displayedPokemons" :key="pokemon.id" :pokemon="pokemon" />
+      <PokemonCard v-for="pokemon in filteredPokemonList" :key="pokemon.id" :pokemon="pokemon" />
     </div>
     
   </section>

@@ -1,21 +1,16 @@
 <script setup lang="ts">
+import type { NavLink } from "@/types/Navigation";
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
 
-interface NavLink {
-  name: string;
-  path: string;
-  icon: "home" | "ball" | "heart" | "gamepad";
-}
-
+const isSidebarOpen = ref(false);
 const navLinks = ref<NavLink[]>([
   { name: "Home", path: "/", icon: "home" },
   { name: "Pokédex", path: "/pokedex", icon: "ball" },
   { name: "Favorites", path: "/favorite", icon: "heart" },
-  { name: "Game Matrix", path: "/game", icon: "gamepad" }
+  { name: "Game Matrix", path: "/pokematch", icon: "gamepad" }
 ]);
 
-const isSidebarOpen = ref(false);
 const toggleSidebar = () => { isSidebarOpen.value = !isSidebarOpen.value; };
 const closeSidebar = () => { isSidebarOpen.value = false; };
 </script>
@@ -37,13 +32,7 @@ const closeSidebar = () => { isSidebarOpen.value = false; };
       </RouterLink>
       
       <div class="hidden items-center gap-1.5 rounded-xl border border-cyan-900/30 bg-slate-950/40 p-1.5 md:flex">
-        <RouterLink 
-          v-for="link in navLinks" 
-          :key="link.name" 
-          :to="link.path" 
-          class="flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-100 border border-transparent transition-all duration-300 hover:text-white group" 
-          active-class="bg-cyan-950/60 border-cyan-500/30 text-cyan-400 shadow-sm shadow-cyan-950"
-        >
+        <RouterLink v-for="link in navLinks" :key="link.name" :to="link.path" class="flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-100 border border-transparent transition-all duration-300 hover:text-white group" active-class="bg-cyan-950/60 border-cyan-500/30 text-cyan-400 shadow-sm shadow-cyan-950">
           <svg v-if="link.icon === 'home'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955a1.125 1.125 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125A1.125 1.125 0 0 0 5.625 21H9.75v-4.875A1.125 1.125 0 0 1 10.875 15h2.25a1.125 1.125 0 0 1 1.125 1.125V21h4.125A1.125 1.125 0 0 0 19.5 19.875V9.75" /></svg>
           <svg v-if="link.icon === 'ball'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><circle cx="12" cy="12" r="2.5" fill="currentColor" /></svg>
           <svg v-if="link.icon === 'heart'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25C21 5.903 19.097 4 16.75 4c-1.657 0-3.097.948-3.75 2.333C12.347 4.948 10.907 4 9.25 4 6.903 4 5 5.903 5 8.25 5 15 13 20 13 20s8-5 8-11.75Z" /></svg>
@@ -67,20 +56,13 @@ const closeSidebar = () => { isSidebarOpen.value = false; };
         <h2 class="text-sm font-black uppercase tracking-widest text-white">Poké<span class="text-cyan-400">Matrix</span></h2>
         <p class="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">Terminal Index</p>
       </div>
-      <button @click="closeSidebar" class="text-slate-400 hover:text-white p-1">
+      <button @click="closeSidebar" class="text-slate-400 hover:text-red-500 cursor-pointer p-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
       </button>
     </div>
 
     <nav class="flex flex-1 flex-col gap-2 pt-6">
-      <RouterLink 
-        v-for="link in navLinks" 
-        :key="link.name" 
-        :to="link.path" 
-        @click="closeSidebar" 
-        class="rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-100 border border-transparent transition-all" 
-        active-class="bg-cyan-950/50 border-cyan-500/30 text-cyan-400"
-      >
+      <RouterLink v-for="link in navLinks" :key="link.name" :to="link.path" @click="closeSidebar" class="rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-100 border border-transparent transition-all" active-class="bg-cyan-950/50 border-cyan-500/30 text-cyan-400">
         {{ link.name }}
       </RouterLink>
     </nav>
@@ -92,10 +74,12 @@ const closeSidebar = () => { isSidebarOpen.value = false; };
 </template>
 
 <style scoped>
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
 }

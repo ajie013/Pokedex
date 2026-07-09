@@ -2,7 +2,7 @@
 import type { PokemonCard, PokemonSpecies } from "@/types/Pokemon";
 import Modal from "./Modal.vue";
 import { onMounted, onUnmounted, ref, computed } from "vue";
-import { TYPE_ICONS, TYPECOLORS } from "@/constants/Pokemon.ts";
+import {  TYPECOLORS } from "@/constants/Pokemon.ts";
 import PokemonDetails from "./PokemonDetails.vue";
 
 const props = defineProps<{
@@ -161,27 +161,21 @@ const getTypeIcon = (type: string) => {
           {{ species.is_legendary ? 'Legendary' : 'Mythical' }}
         </span>
       </div>
-<div class="mt-auto flex flex-wrap justify-center gap-2 pt-4">
-  <span
-    v-for="type in pokemon.types"
-    :key="type.type.name"
-    :class="[
-      'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm',
-      TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white'
-    ]"
-  >
-    <img
-  :src="getTypeIcon(type.type.name)"
-  :alt="type.type.name"
-  class="h-4 w-4 object-contain"
-  @error="($event.target as HTMLImageElement).style.display = 'none'"
-/>
+    <div class="mt-auto flex flex-wrap justify-center gap-2 pt-4">
+      <span v-for="type in pokemon.types" :key="type.type.name" :class="['inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm',
+          TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white']">
+        <img
+          :src="getTypeIcon(type.type.name)"
+          :alt="type.type.name"
+          class="h-4 w-4 object-contain"
+          @error="($event.target as HTMLImageElement).style.display = 'none'"
+        />
 
-    <span class="capitalize">
-      {{ type.type.name }}
-    </span>
-  </span>
-</div>
+        <span class="capitalize">
+          {{ type.type.name }}
+        </span>
+      </span>
+    </div>
     </div>
   </div>
 

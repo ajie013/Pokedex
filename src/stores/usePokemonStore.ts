@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { PokemonCard, Stat, Ability, PokemonType, Pokemon } from '@/types/Pokemon';
 import { formatPokemonDetails } from '@/utils/PokemonFormatter';
+import { useFetch } from '@/composables/useFetch';
+import type { ApiResponse } from '@/types/ApiResult';
 
 export const usePokemonStore = defineStore('pokemon', () => {
   const pokemonList = ref<PokemonCard[]>([]);
@@ -26,26 +28,15 @@ export const usePokemonStore = defineStore('pokemon', () => {
     return pokemonMap.value.get(name);
   }
 
-  const fetchSearchIndex = async () => {
-    if (isIndexLoaded.value || isIndexing.value) return;
-    
-    isIndexing.value = true;
-    try {
-      const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1500&offset=0');
-      if (!res.ok) throw new Error("Failed global index aggregation");
-      
-      const data = await res.json();
-      searchIndex.value = data.results;
-      isIndexLoaded.value = true;
-    } catch (err) {
-      console.error("Failed to compile global search index matrix:", err);
-    } finally {
-      isIndexing.value = false;
-    }
+  const setIndexData = (results: { name: string; url: string }[]) => {
+    searchIndex.value = results;
+    isIndexLoaded.value = true;
   };
 
+  //after fetching all pokemons, this function gets each pokemon's detail in the background
   const startBackgroundSync = async () => {
     if (isBackgroundSyncing.value) return;
+
     isBackgroundSyncing.value = true;
 
     for (const item of searchIndex.value) {
@@ -65,9 +56,13 @@ export const usePokemonStore = defineStore('pokemon', () => {
         }
       }
     }
+
     isBackgroundSyncing.value = false;
   };
 
+  //check if pokemon is already in the store, returns the existing data if yes
+  //continue fetching if no
+  //adds the new pokemon in the store
   const getOrFetchPokemon = async (item: Pokemon) => {
     const existing = pokemonMap.value.get(item.name);
 
@@ -87,7 +82,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     addPokemonCards([card]);
 
     return card;
-};
+  };
 
   return { 
     pokemonList, 
@@ -95,8 +90,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
     isIndexLoaded,
     isBackgroundSyncing, 
     addPokemonCards, 
-    fetchSearchIndex, 
+    setIndexData, 
     startBackgroundSync,
-    getOrFetchPokemon
+    getOrFetchPokemon,
+    getPokemon
   };
 });

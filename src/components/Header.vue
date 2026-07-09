@@ -1,10 +1,12 @@
 <script setup lang="ts">
-defineProps<{
+
+const props = defineProps<{
   sub?: string;
   titleFirst: string;
   titleSecond: string;
   content: string;
 }>();
+
 </script>
 
 <template>

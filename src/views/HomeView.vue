@@ -1,35 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { usePokemonStore } from '@/stores/usePokemonStore';
+import Header from '@/components/Header.vue';
 
 const store = usePokemonStore();
 
 const totalSynced = computed(() => store.pokemonList.length);
 const totalFavorites = computed(() => store.pokemonList.filter(p => p.isFavorite).length);
 
-onMounted(async () => {
-  await store.fetchSearchIndex(); 
-  
-  //store.startBackgroundSync(); 
-});
 </script>
 
 <template>
-  <div class="space-y-10 animate-fade-in max-w-6xl mx-auto">
-    
-    <section class="relative overflow-hidden rounded-2xl border border-cyan-900/40 bg-slate-900/60 p-8 md:p-12 shadow-2xl backdrop-blur-md">
-      <div class="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"></div>
-      <div class="absolute -bottom-36 -left-20 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl"></div>
+  <div class="space-y-10 animate-fade-in mx-auto">
 
-      <div class="relative max-w-2xl">
-        <p class="mb-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-400">System Link: Online</p>
-        <h1 class="text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl uppercase">Poké<span class="text-cyan-400 font-mono">Matrix</span> OS</h1>
-        <p class="mt-4 text-sm text-slate-400 leading-relaxed max-w-xl">
-          Welcome to your centralized tactical environment. Access the complete Pokémon indexing registry, review flagged high-priority data cores, or calibrate memory arrays.
-        </p>
-      </div>
-    </section>
+    <!-- HEADER -->
+    <Header sub="System Link: Online" title-first="Poké" title-second="Matrix" content=" Welcome to your centralized tactical environment. Access the complete Pokémon indexing registry, review flagged high-priority data cores, or calibrate memory arrays."></Header>
 
+    <!-- SUMMARY -->
     <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="rounded-xl border border-slate-800/80 bg-slate-900/30 p-5 backdrop-blur-sm flex flex-col justify-between">
         <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Database Cores</span>
@@ -38,7 +25,7 @@ onMounted(async () => {
           <span class="text-xs font-bold font-mono text-cyan-400/70">SYNCED</span>
         </div>
       </div>
-
+  
       <div class="rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-5 backdrop-blur-sm flex flex-col justify-between shadow-inner">
         <span class="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Pinned Signals</span>
         <div class="mt-4 flex items-baseline gap-2">
@@ -56,6 +43,7 @@ onMounted(async () => {
       </div>
     </section>
 
+    <!-- LINKS -->
     <section class="space-y-4">
       <h2 class="text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-400/70 pl-1">Access Terminals</h2>
 
@@ -82,7 +70,7 @@ onMounted(async () => {
           <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">Unlock Array →</div>
         </RouterLink>
 
-        <RouterLink to="/game" class="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40 p-6 transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-950/20 hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-950/40">
+        <RouterLink to="/pokematch" class="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40 p-6 transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-950/20 hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-950/40">
           <div class="absolute -right-6 -bottom-6 opacity-5 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-10 text-cyan-400">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />

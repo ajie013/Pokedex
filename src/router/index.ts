@@ -17,11 +17,7 @@ const router = createRouter({
       component: () => import('@/views/FavoriteView.vue'),
     },
     {
-      path: '/dasd',
-      component: () => import('@/views/GameView.vue'),
-    },
-    {
-      path: '/game',
+      path: '/pokematch',
       component: () => import('@/views/PokeMatchView.vue'),
     },
   ],

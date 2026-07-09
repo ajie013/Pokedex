@@ -1,11 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { RouterView } from "vue-router";
 import Navigation from "./components/Navigation.vue";
 import { usePokemonStore } from "./stores/usePokemonStore.ts";
+import type { ApiResponse } from "./types/ApiResult.ts";
+import { useFetch } from "./composables/useFetch.ts";
+
+const store = usePokemonStore();
+
+const { data, loading, error } = useFetch<ApiResponse>(
+  "https://pokeapi.co/api/v2/pokemon?limit=1500&offset=0"
+);
+
+watch(data, (newData) => {
+  if (newData?.results) {
+    store.setIndexData([...newData.results]);
+    store.startBackgroundSync();
+  }
+});
 
 const isVisible = ref(false);
-const store = usePokemonStore()
+
 const handleScroll = () => {
   if (typeof window !== "undefined") {
     isVisible.value = window.scrollY > 100;
@@ -19,10 +34,8 @@ const scrollToTop = () => {
   });
 };
 
-onMounted(async () => {
-  await store.fetchSearchIndex()
-  await store.startBackgroundSync()
-  
+onMounted(() => {
+  // Removed old manual store fetching methods since useFetch handles it synchronously now!
   window.addEventListener("scroll", handleScroll);
 });
 

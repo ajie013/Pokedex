@@ -41,24 +41,3 @@ export const POKEMONTYPES = ref([
   'Steel',
   'Fairy'
 ])
-
-export const TYPE_ICONS: Record<string, string> = {
-  NORMAL: "⚪",
-  FIRE: "🔥",
-  WATER: "💧",
-  ELECTRIC: "⚡",
-  GRASS: "🌿",
-  ICE: "❄️",
-  FIGHTING: "🥊",
-  POISON: "☠️",
-  GROUND: "🌎",
-  FLYING: "🪽",
-  PSYCHIC: "🔮",
-  BUG: "🐛",
-  ROCK: "🪨",
-  GHOST: "👻",
-  DRAGON: "🐉",
-  DARK: "🌑",
-  STEEL: "⚙️",
-  FAIRY: "🧚"
-};

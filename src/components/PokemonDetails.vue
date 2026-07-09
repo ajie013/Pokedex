@@ -14,8 +14,8 @@ import type {
 import {  usePokemonStore } from '@/stores/usePokemonStore';
 
 const props = defineProps<{
-  pokemon: PokemonCard;
-}>();
+  pokemon: PokemonCard
+}>()
 
 const store = usePokemonStore();
 
@@ -38,26 +38,31 @@ const toggleFavorites = () => {
 const playCry = (url: string | undefined) => {
   if (!url) {
     console.warn("No cry audio resource path found for this Pokemon.");
-    return;
+    return
   }
 
-  const audio: HTMLAudioElement = new Audio(url);
-  audio.volume = 0.5; 
+  const audio: HTMLAudioElement = new Audio(url)
+  audio.volume = 0.5
 
-  audio.play()
-    .then(() => {
-      console.log("Cry played smoothly!");
-    })
-    .catch((error: Error) => {
-      console.warn("Audio skipped: Interaction required or unsupported audio source asset.", error.message);
-    });
+  audio.play().then(() => {
+    console.log("Cry played smoothly!");
+  })
+  .catch((error: Error) => {
+    console.warn("Audio skipped: Interaction required or unsupported audio source asset.", error.message);
+  })
 }
 
 const flattenEvolution = ( node: EvolutionNode, list: SpeciesReference[] = []): SpeciesReference[] => {
-  list.push(node.species);
-  node.evolves_to.forEach(child => flattenEvolution(child, list));
-  return list;
-};
+  list.push(node.species)
+
+  node.evolves_to.forEach(child => flattenEvolution(child, list))
+
+  return list
+}
+
+const getTypeIcon = (type: string) => {
+  return `/pokemon-types/${type.toLowerCase()}.png`;
+}
 
 const fetchSpecies = async () => {
   try {
@@ -69,7 +74,7 @@ const fetchSpecies = async () => {
   } catch (err) {
     console.error("Error fetching species data:", err);
   }
-};
+}
 
 const fetchWeaknesses = async () => {
   try {
@@ -102,7 +107,7 @@ const fetchWeaknesses = async () => {
   } catch (err) {
     console.error("Error fetching weaknesses:", err);
   }
-};
+}
 
 const fetchEvolutionChain = async () => {
   if (!species.value) return;
@@ -126,19 +131,19 @@ const fetchEvolutionChain = async () => {
   } catch (err) {
     console.error("Error fetching evolution chain:", err);
   }
-};
+}
 
 const femaleRate = computed(() => {
   if (!species.value) return "--";
 
   return species.value.gender_rate === -1 ? "Genderless" : `${species.value.gender_rate * 12.5}%`;
-});
+})
 
 const maleRate = computed(() => {
   if (!species.value) return "--";
 
   return species.value.gender_rate === -1 ? "Genderless" : `${100 - species.value.gender_rate * 12.5}%`;
-});
+})
 
 const totalStats = computed(() => props.pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0));
 
@@ -146,7 +151,7 @@ onMounted(() => {
   fetchWeaknesses();
   fetchSpecies();
   playCry(props.pokemon.cries.latest)
-});
+})
 
 const retryImage = (event: Event) => {
   const img = event.target as HTMLImageElement;
@@ -155,8 +160,8 @@ const retryImage = (event: Event) => {
   setTimeout(() => {
     img.src = "";
     img.src = src;
-  }, 1000);
-};
+  }, 1000)
+}
 </script>
 
 <template>
@@ -194,15 +199,21 @@ const retryImage = (event: Event) => {
         {{ pokemon.name }}
       </h1>
 
-      <div class="mt-3 flex flex-wrap justify-center gap-2">
-        <span 
-          v-for="type in pokemon.types" 
-          :key="type.type.name" 
-          :class="['rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider shadow-sm', TYPECOLORS[type.type.name.toUpperCase()]]"
-        >
+         <div class="mt-auto flex flex-wrap justify-center gap-2 pt-4">
+      <span v-for="type in pokemon.types" :key="type.type.name" :class="['inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm',
+          TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white']">
+        <img
+          :src="getTypeIcon(type.type.name)"
+          :alt="type.type.name"
+          class="h-4 w-4 object-contain"
+          @error="($event.target as HTMLImageElement).style.display = 'none'"
+        />
+
+        <span class="capitalize">
           {{ type.type.name }}
         </span>
-      </div>
+      </span>
+    </div>
     </section>
 
     <section>

@@ -1,3 +1,4 @@
+import type { GamePokemonDetail } from "@/types/Game";
 import type { Ability, PokemonCard, PokemonType, Stat } from "@/types/Pokemon";
 
 export const formatPokemonDetails = (details: PokemonCard): PokemonCard => ({
@@ -49,3 +50,16 @@ export const formatPokemonDetails = (details: PokemonCard): PokemonCard => ({
     },
   },
 });
+
+export const formatPokemonGameBoard = (details: GamePokemonDetail): GamePokemonDetail => ({
+  id: details.id,
+  name: details.name,
+  sprites: {
+    other: {
+      "official-artwork": {
+        front_default: `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${details.id}.png`,
+        front_shiny: `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/${details.id}.png`,
+      },
+    },
+  },
+})

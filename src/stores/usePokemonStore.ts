@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { PokemonCard, Stat, Ability, PokemonType, Pokemon, PokemonSpecies } from '@/types/Pokemon';
-import { formatPokemonDetails, formatSpecie } from '@/utils/PokemonFormatter';
-import { useFetch } from '@/composables/useFetch';
 import type { ApiResponse } from '@/types/ApiResult';
+import * as  pokemonService  from '@/services/pokemonService';
+import { formatPokemonDetails, formatSpecie } from '@/utils/pokemonFormatter';
 
 export const usePokemonStore = defineStore('pokemon', () => {
   const pokemonList = ref<PokemonCard[]>([]);
@@ -25,11 +25,16 @@ export const usePokemonStore = defineStore('pokemon', () => {
     pokemonList.value.sort((a, b) => a.id - b.id);
   };
 
+  const fetchPokemonList = async () =>{
+    const data = await pokemonService.getPokemonList()
+    setIndexData([...data.results])
+  }
+
   const getPokemon = (name: string) => {
     return pokemonMap.value.get(name);
   }
 
- const setIndexData = (results: { name: string; url: string }[]) => {
+  const setIndexData = (results: { name: string; url: string }[]) => {
     searchIndex.value = results;
     isIndexLoaded.value = true;
   };
@@ -45,10 +50,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
       
       if (!alreadyLoaded) {
         try {
-          const res = await fetch(item.url);
-          if (!res.ok) continue;
-          
-          const rawDetails = await res.json();
+          const rawDetails = await pokemonService.getPokemonDetails(item.url);
           addPokemonCards([formatPokemonDetails(rawDetails)]);
 
           await new Promise(resolve => setTimeout(resolve, 120));
@@ -60,7 +62,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
 
     isBackgroundSyncing.value = false;
   };
-
 
   const getOrFetchSpecie = async (url: string) => {
     const existing = speciesMap.value.get(url);
@@ -74,13 +75,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     }
 
     const request = (async () => {
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Failed");
-      }
-
-      const raw = await response.json();
+      const raw = await pokemonService.getPokemonSpecie(url)
       const species = formatSpecie(raw);
 
       speciesMap.value.set(url, species);
@@ -107,13 +102,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
         return existing;
     }
 
-    const response = await fetch(item.url);
-
-    if (!response.ok) {
-        throw new Error("Failed");
-    }
-
-    const raw = await response.json();
+    const raw = await pokemonService.getPokemonDetails(item.url);
     const card = formatPokemonDetails(raw);
 
     addPokemonCards([card]);
@@ -131,6 +120,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     startBackgroundSync,
     getOrFetchPokemon,
     getPokemon,
-    getOrFetchSpecie
+    getOrFetchSpecie,
+    fetchPokemonList
   };
 });

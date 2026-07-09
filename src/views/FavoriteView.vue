@@ -5,7 +5,7 @@ import { usePokemonStore } from '@/stores/usePokemonStore';
 import Header from '@/components/Header.vue';
 import PokemonFilter from '@/components/PokemonFilter.vue';
 import PokemonSearch from '@/components/PokemonSearch.vue';
-import { getNoPokemonFoundMessage } from '@/utils/PokemonErrorLabel';
+import { getNoPokemonFoundMessage } from '@/utils/pokemonErrorLabel';
 
 const store = usePokemonStore();
 const searchInput = ref("")

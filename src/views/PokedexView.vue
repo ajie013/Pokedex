@@ -6,7 +6,8 @@ import Header from "@/components/Header.vue";
 import PokemonFilter from "@/components/PokemonFilter.vue";
 import type { Pokemon } from "@/types/Pokemon";
 import PokemonSearch from "@/components/PokemonSearch.vue";
-import { getNoPokemonFoundMessage } from "@/utils/PokemonErrorLabel";
+import { getNoPokemonFoundMessage } from "@/utils/pokemonErrorLabel";
+
 
 const store = usePokemonStore();
 const currentOffset = ref(0);

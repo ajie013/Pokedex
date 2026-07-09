@@ -1,18 +1,19 @@
 <script setup lang="ts">
-
-import { ref, watch } from "vue";
-import { useFetch } from "@/composables/useFetch";
+import { onMounted, ref, watch } from "vue";
 import type { Pokemon } from "@/types/Pokemon";
 import type { GameCard, GamePokemonDetail } from "@/types/Game";
 import Header from "@/components/Header.vue";
-import { formatPokemonGameBoard } from "@/utils/PokemonFormatter";
-import type { ApiResponse } from "@/types/ApiResult";
+import { formatPokemonGameBoard } from "@/utils/pokemonFormatter";
+import * as pokemonService from "@/services/pokemonService";
 
-const randomNumber = Math.floor(Math.random() * 1000);
+const loading = ref(true);
+const error = ref<string | null>(null);
+
 const pokemonList = ref<GamePokemonDetail[]>([]);
 const gameBoard = ref<GameCard[]>([]);
 const score = ref(0);
 const isGameOver = ref(false);
+const data = ref<Pokemon[]>([]);
 
 const selectedCard = ref<{
   first: GameCard | null;
@@ -22,28 +23,39 @@ const selectedCard = ref<{
   second: null,
 });
 
-const { data, loading, error } = useFetch<ApiResponse>(() => `https://pokeapi.co/api/v2/pokemon?limit=10&offset=${randomNumber}`); //fetch 10 random pokemons
+const isChecking = ref(false);
 
-const isChecking = ref(false) //tracker if card is in the state of flipping
+onMounted(async () => {
+  loading.value = true;
+  error.value = null;
 
-//shuffles the card
+  try {
+    const random = Math.floor(Math.random() * 1200);
+
+    data.value = (await pokemonService.getRandomPokemon(random)).results;
+
+    await fetchPokemonDetails();
+  } catch (err) {
+    console.error(err);
+    error.value = "Failed to initialize the game.";
+  } finally {
+    loading.value = false;
+
+    console.log(data.value)
+  }
+});
+
 const shuffle = <T>(array: T[]): T[] => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
-//fetch the pokemon details and formats them
 const fetchPokemonDetails = async () => {
-  if (!data.value) return;
+  if (!data.value.length) return;
 
   try {
     const cards = await Promise.all(
-      data.value.results.map(async (pokemon: Pokemon) => {
-        const response = await fetch(pokemon.url);
-
-        if (!response.ok) throw new Error(`Failed to fetch ${pokemon.name}`);
-
-        const details: GamePokemonDetail = await response.json();
-
+      data.value.map(async (pokemon: Pokemon) => {
+        const details = await pokemonService.getPokemonDetails(pokemon.url);
         return formatPokemonGameBoard(details);
       })
     );
@@ -52,21 +64,19 @@ const fetchPokemonDetails = async () => {
     resetGame();
   } catch (err) {
     console.error(err);
+    error.value = "Failed to load Pokémon details.";
   }
 };
 
 const clearSelection = () => {
-    selectedCard.value.first = null;
-    selectedCard.value.second = null;
-}
+  selectedCard.value.first = null;
+  selectedCard.value.second = null;
+};
 
-//fires when a card is click
-//this determines wether the selected cards are matched
 const match = (card: GameCard) => {
   if (isChecking.value || isGameOver.value) return;
-  if (card.flipped || card.matched) {
-    return;
-  }
+
+  if (card.flipped || card.matched) return;
 
   card.flipped = true;
 
@@ -87,28 +97,26 @@ const match = (card: GameCard) => {
 
     score.value++;
 
-   clearSelection()
-
+    clearSelection();
     isChecking.value = false;
   } else {
     setTimeout(() => {
       first.flipped = false;
       second.flipped = false;
 
-     clearSelection()
-
+      clearSelection();
       isChecking.value = false;
     }, 1000);
   }
 };
 
-//resets the game
 const resetGame = () => {
   selectedCard.value.first = null;
   selectedCard.value.second = null;
+
   score.value = 0;
   isGameOver.value = false;
-  
+
   gameBoard.value = shuffle(
     [...pokemonList.value, ...pokemonList.value].map((pokemon) => ({
       ...pokemon,
@@ -119,7 +127,6 @@ const resetGame = () => {
   );
 };
 
-//shows the game over popup if all cards are flipped
 watch( gameBoard, (newBoard) => {
     if (newBoard.length > 0 && newBoard.every((item) => item.matched)) {
       setTimeout(() => {
@@ -128,14 +135,6 @@ watch( gameBoard, (newBoard) => {
     }
   },
   { deep: true }
-);
-
-//fetches the pokemon details when data (pokemon name and url) changes
-watch(data, async (newData) => {
-    if (!newData) return;
-    await fetchPokemonDetails();
-  },
-  { immediate: true }
 );
 </script>
 

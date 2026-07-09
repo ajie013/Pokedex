@@ -4,20 +4,8 @@ import { RouterView } from "vue-router";
 import Navigation from "./components/Navigation.vue";
 import { usePokemonStore } from "./stores/usePokemonStore.ts";
 import type { ApiResponse } from "./types/ApiResult.ts";
-import { useFetch } from "./composables/useFetch.ts";
 
 const store = usePokemonStore();
-//fetches all the pokemon (name and url)
-const { data, loading, error } = useFetch<ApiResponse>(
-  "https://pokeapi.co/api/v2/pokemon?limit=1500&offset=0"
-);
-
-watch(data, (newData) => {
-  if (newData?.results) {
-    store.setIndexData([...newData.results]);
-    store.startBackgroundSync(); //fetch pokemons details
-  }
-});
 
 const isVisible = ref(false);
 
@@ -34,9 +22,11 @@ const scrollToTop = () => {
   });
 };
 
-onMounted(() => {
-  // Removed old manual store fetching methods since useFetch handles it synchronously now!
+onMounted(async () => {
   window.addEventListener("scroll", handleScroll);
+
+  await store.fetchPokemonList()
+  await store.startBackgroundSync()
 });
 
 onUnmounted(() => {

@@ -21,7 +21,7 @@ export const TYPECOLORS: Record<string, string> = {
   FAIRY: "bg-pink-300 text-slate-900",
 };
 
-export const POKEMONTYPES = ref([
+export const POKEMONTYPES = [
   'Normal',
   'Fire',
   'Water',
@@ -40,4 +40,4 @@ export const POKEMONTYPES = ref([
   'Dark',
   'Steel',
   'Fairy'
-])
+]

@@ -5,7 +5,8 @@ import { onMounted, onUnmounted, ref, computed } from "vue";
 import {  TYPECOLORS } from "@/constants/Pokemon.ts";
 import PokemonDetails from "./PokemonDetails.vue";
 import { usePokemonStore } from "@/stores/usePokemonStore.ts";
-
+import { getTypeIcon } from "@/utils/pokemon.ts";
+import { useImageLoader } from "@/composables/useImageLoader.ts";
 
 const store = usePokemonStore()
 const props = defineProps<{
@@ -14,39 +15,11 @@ const props = defineProps<{
 
 const showViewModal = ref(false)
 const species = ref<PokemonSpecies | null>(null);
-const retryCount = ref(0);
-const MAX_RETRIES = 3;
-const cardRef = ref<HTMLElement | null>(null);;
-const imageSrc = ref("");
-const imageLoading = ref(true);
-const imageError = ref(false);
-let observer: IntersectionObserver | null = null;
+
+const img = ref(props.pokemon.sprites.other["official-artwork"].front_default)
+const { retryImage, imageError, imageLoading, imageSrc, cardRef} = useImageLoader(img)
 
 onMounted( async() => {
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-
-      if (!entry?.isIntersecting) return;
-
-      imageSrc.value = props.pokemon.sprites.other["official-artwork"].front_default;
-
-      imageLoading.value = true;
-      imageError.value = false;
-
-      observer?.disconnect();
-    },
-    {
-      root: null,
-      threshold: 0.1,
-      rootMargin: "100px",
-    }
-  );
-
-  if (cardRef.value) {
-    observer.observe(cardRef.value);
-  }
-
   species.value = await store.getOrFetchSpecie(props.pokemon.species.url)
 });
 
@@ -64,43 +37,17 @@ const cardRarityClasses = computed(() => {
   return 'border-cyan-900/30 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)]';
 });
 
-onUnmounted(() => {
-  observer?.disconnect();
-});
-
-const retryImage = (event: Event) => {
-  if (retryCount.value >= MAX_RETRIES) {
-    imageLoading.value = false;
-    imageError.value = true; 
-    return;
-  }
-
-  imageError.value = true;
-  imageLoading.value = true;
-
-  const img = event.target as HTMLImageElement;
-  const src = img.src;
-
-  setTimeout(() => {
-    imageError.value = false;
-
-    img.src = "";
-    img.src = src;
-  }, 2000 * retryCount.value);
-};
-
-const getTypeIcon = (type: string) => {
-  return `/pokemon-types/${type.toLowerCase()}.png`;
-};
 </script>
 
 <template>
   <div :title="pokemon.name" @click="viewPokemon" :class="['group h-full flex flex-col cursor-pointer overflow-hidden rounded-3xl bg-linear-to-b from-slate-900 to-slate-950 transition-all duration-300 hover:-translate-y-2', cardRarityClasses]">
     <div class="relative flex h-44 items-center justify-center overflow-hidden border-b border-cyan-900/20 bg-linear-to-br from-slate-800 via-slate-900 to-slate-950">
-     <div v-if="species?.is_legendary || species?.is_mythical" :class="['absolute inset-0 pointer-events-none mix-blend-screen opacity-75 group-hover:opacity-100 transition-opacity duration-200 z-0', species.is_legendary ? 'legendary-particles' : 'mythical-particles']"></div>
+     <div v-if="species?.is_legendary || species?.is_mythical" :class="['absolute inset-0 pointer-events-none mix-blend-screen opacity-75 group-hover:opacity-100 transition-opacity duration-200 z-0', species.is_legendary ? 'legendary-particles' : 'mythical-particles']">
+     </div>
 
       <p class="absolute top-2 left-2 mt-4 font-mono text-[0.6rem] tracking-wider text-slate-400">#{{ pokemon.id.toString().padStart(3, "0") }}</p>
 
+       <!-- IMAGE -->
       <div ref="cardRef" class="relative">
         <div v-if="imageLoading" class="absolute inset-0 z-20 flex flex-col items-center justify-center">
           <div :class="['h-6 w-6 animate-spin rounded-full border-2 border-t-transparent', species?.is_legendary ? 'border-amber-400' : species?.is_mythical ? 'border-purple-400' : 'border-cyan-400']"></div>
@@ -117,6 +64,7 @@ const getTypeIcon = (type: string) => {
       </div>
     </div>
 
+     <!-- TYPE -->
     <div class="flex flex-1 flex-col p-5">
       <h2 class="text-center text-lg font-bold capitalize tracking-wide text-white">
         {{ pokemon.name.length > 20 ? `${pokemon.name.substring(0, 20)}...` : pokemon.name}}
@@ -127,6 +75,8 @@ const getTypeIcon = (type: string) => {
           {{ species.is_legendary ? 'Legendary' : 'Mythical' }}
         </span>
       </div>
+
+       <!-- VIEW POKEMON DETAILS MODAL -->
     <div class="mt-auto flex flex-wrap justify-center gap-2 pt-4">
       <span v-for="type in pokemon.types" :key="type.type.name" :class="['inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm', TYPECOLORS[type.type.name.toUpperCase()] || 'bg-slate-600 text-white']">
         <img :src="getTypeIcon(type.type.name)" :alt="type.type.name" class="h-4 w-4 object-contain" @error="($event.target as HTMLImageElement).style.display = 'none'"/>
@@ -136,6 +86,7 @@ const getTypeIcon = (type: string) => {
     </div>
   </div>
 
+  <!-- VIEW POKEMON DETAILS MODAL -->
   <Modal v-if="showViewModal" @close="showViewModal = false">
     <PokemonDetails :pokemon="pokemon" />
   </Modal>

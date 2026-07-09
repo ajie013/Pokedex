@@ -12,6 +12,9 @@ import type {
   PokemonTypeDetails,
 } from "@/types/Pokemon";
 import {  usePokemonStore } from '@/stores/usePokemonStore';
+import { getTypeIcon } from '@/utils/pokemon';
+import { useImageLoader } from '@/composables/useImageLoader';
+import * as pokemonService from '@/services/pokemonService'
 
 const props = defineProps<{
   pokemon: PokemonCard
@@ -35,6 +38,23 @@ const toggleFavorites = () => {
   }
 };
 
+//toggle shiny
+const imageUrl = computed(() =>
+  showShiny.value
+    ? `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/${pokemon.value.id}.png`
+    : `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${pokemon.value.id}.png`
+);
+
+const {
+  imageSrc,
+  imageLoading,
+  imageError,
+  retryImage,
+  onImageLoad,
+  cardRef
+} = useImageLoader(imageUrl, false);
+
+//sound
 const playCry = (url: string | undefined) => {
   if (!url) {
     console.warn("No cry audio resource path found for this Pokemon.");
@@ -60,21 +80,18 @@ const flattenEvolution = ( node: EvolutionNode, list: SpeciesReference[] = []): 
   return list
 }
 
-const getTypeIcon = (type: string) => {
-  return `/pokemon-types/${type.toLowerCase()}.png`;
-}
-
+//fetch species
 const fetchSpecies = async () => {
   species.value = await store.getOrFetchSpecie(props.pokemon.species.url)
   await fetchEvolutionChain();
 }
 
+//fetch weaknesses
 const fetchWeaknesses = async () => {
   try {
     const typeData: PokemonTypeDetails[] = await Promise.all(
       props.pokemon.types.map(async (type) => {
-        const response = await fetch(type.type.url);
-        return response.json();
+        return  await pokemonService.getPokemonType(type.type.url)
       })
     );
 
@@ -102,6 +119,7 @@ const fetchWeaknesses = async () => {
   }
 }
 
+//fetch evolution chain
 const fetchEvolutionChain = async () => {
   if (!species.value) return;
 
@@ -112,12 +130,12 @@ const fetchEvolutionChain = async () => {
 
     evolutionChain.value = await Promise.all(
       speciesList.map(async (pokemon) => {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
-        const details = await res.json();
+        const details = await store.getOrFetchPokemon(pokemon)
+
         return {
           id: details.id,
           name: details.name,
-          image: details.sprites.other["official-artwork"].front_default,
+          image: `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${details.id}.png`,
         };
       })
     );
@@ -126,6 +144,7 @@ const fetchEvolutionChain = async () => {
   }
 }
 
+//compute gender
 const femaleRate = computed(() => {
   if (!species.value) return "--";
 
@@ -148,20 +167,12 @@ onMounted(async() => {
   playCry(props.pokemon.cries.latest)
 })
 
-const retryImage = (event: Event) => {
-  const img = event.target as HTMLImageElement;
-  const src = img.src;
-
-  setTimeout(() => {
-    img.src = "";
-    img.src = src;
-  }, 1000)
-}
 </script>
 
 <template>
   <div class="space-y-8 max-w-2xl mx-auto p-4">
     
+    <!-- IMAGE CARD -->
     <section class="flex flex-col items-center relative rounded-3xl bg-slate-900/40 p-6 border border-slate-800/60 shadow-xl">
       
       <button @click="toggleFavorites" class="absolute top-4 left-4 z-10 p-2.5 rounded-xl border transition-all duration-300 group cursor-pointer shadow-md"
@@ -174,13 +185,12 @@ const retryImage = (event: Event) => {
         </svg>
       </button>
 
-      <div class="flex h-48 w-48 items-center justify-center rounded-3xl border border-cyan-900/40 bg-linear-to-br from-slate-800 to-slate-950 p-4 shadow-lg">
-        <img @error="retryImage" :src="showShiny
-            ? pokemon.sprites.other['official-artwork'].front_shiny
-            : pokemon.sprites.other['official-artwork'].front_default"
-          :alt="pokemon.name"
-          class="w-full h-full object-contain"
-        />
+      <div ref="cardRef" class="relative flex h-48 w-48 items-center justify-center rounded-3xl border border-cyan-900/40 bg-linear-to-br from-slate-800 to-slate-950 p-4 shadow-lg">
+        <div v-if="imageLoading" class="absolute inset-0 flex items-center justify-center">
+          <div class="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
+        </div>
+
+        <img :src="imageSrc" :alt="pokemon.name" class="w-full h-full object-contain" @load="onImageLoad" @error="retryImage"/>
       </div>
       
       <button @click="showShiny = !showShiny" class="cursor-pointer mt-4 rounded-lg border border-cyan-600/50 bg-cyan-950/20 px-4 py-1.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-cyan-800/40">
@@ -211,6 +221,7 @@ const retryImage = (event: Event) => {
     </div>
     </section>
 
+    <!-- BASIC INFO -->
     <section>
       <h2 class="mb-4 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Basic Information
@@ -235,6 +246,7 @@ const retryImage = (event: Event) => {
       </div>
     </section>
 
+    <!-- SPECIES INFO -->
     <section>
       <h2 class="mb-4 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Species Information
@@ -265,6 +277,7 @@ const retryImage = (event: Event) => {
       </div>
     </section>
 
+    <!-- ABILITIES -->
     <section>
       <h2 class="mb-4 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Abilities
@@ -279,6 +292,7 @@ const retryImage = (event: Event) => {
       </div>
     </section>
 
+    <!-- WEAKNESSES -->
     <section>
       <h2 class="mb-4 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Weaknesses
@@ -292,6 +306,7 @@ const retryImage = (event: Event) => {
       </div>
     </section>
 
+    <!-- EVOLUTION -->
     <section>
       <h2 class="mb-5 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Evolution Chain
@@ -316,6 +331,7 @@ const retryImage = (event: Event) => {
       </div>
     </section>
 
+    <!-- BASE STATS -->
     <section>
       <h2 class="mb-5 border-b border-cyan-900/40 pb-2 text-sm font-bold uppercase tracking-widest text-cyan-400">
         Base Stats

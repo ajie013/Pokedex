@@ -15,6 +15,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <Teleport to="body">
   <Transition name="fade">
     <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click.self="emit('close')">
       <Transition name="drawer">
@@ -41,6 +42,7 @@ onUnmounted(() => {
       </Transition>
     </div>
   </Transition>
+  </Teleport>
 </template>
 
 <style scoped>

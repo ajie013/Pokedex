@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { PokemonCard, Stat, Ability, PokemonType, Pokemon, PokemonSpecies } from '@/types/Pokemon';
-import type { ApiResponse } from '@/types/ApiResult';
+import type { PokemonCard, Pokemon, PokemonSpecies } from '@/types/Pokemon';
 import * as  pokemonService  from '@/services/pokemonService';
-import { formatPokemonDetails, formatSpecie } from '@/utils/pokemonFormatter';
+import { formatPokemonDetails, formatSpecie } from '../utils/pokemonFormatter';
 
 export const usePokemonStore = defineStore('pokemon', () => {
   const pokemonList = ref<PokemonCard[]>([]);

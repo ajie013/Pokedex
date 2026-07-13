@@ -10,8 +10,10 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
-    tailwindcss()
+    tailwindcss(),
+    
   ],
+  base: '/Pokedex/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
